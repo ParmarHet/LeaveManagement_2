@@ -43,7 +43,7 @@ To access the system as an administrator:
 
 ## 🛠️ Technology Stack
 - **Backend**: ASP.NET Core 10.0 (MVC)
-- **Database**: Entity Framework Core with SQLite
+- **Database**: MySQL
 - **Frontend**: Bootstrap 5, FontAwesome, Chart.js, Outfit Web Font
 - **Icons**: FontAwesome 6
 
