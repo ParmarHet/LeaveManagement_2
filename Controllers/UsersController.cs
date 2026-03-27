@@ -14,12 +14,14 @@ public class UsersController : Controller
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly RoleManager<IdentityRole> _roleManager;
     private readonly ApplicationDbContext _context;
+    private readonly LMS.Services.ILeaveAllocationService _leaveAllocationService;
 
-    public UsersController(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, ApplicationDbContext context)
+    public UsersController(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, ApplicationDbContext context, LMS.Services.ILeaveAllocationService leaveAllocationService)
     {
         _userManager = userManager;
         _roleManager = roleManager;
         _context = context;
+        _leaveAllocationService = leaveAllocationService;
     }
 
     // GET: Users
@@ -168,6 +170,9 @@ public class UsersController : Controller
                 var currentRoles = await _userManager.GetRolesAsync(user);
                 await _userManager.RemoveFromRolesAsync(user, currentRoles);
                 await _userManager.AddToRoleAsync(user, model.Role);
+
+                // ** Auto-allocate default leaves for the newly activated user **
+                await _leaveAllocationService.AllocateDefaultLeavesAsync(user.Id, DateTime.Now.Year);
 
                 return RedirectToAction(nameof(Pending));
             }

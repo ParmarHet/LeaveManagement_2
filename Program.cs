@@ -15,6 +15,7 @@ builder.Services.AddDefaultIdentity<LMS.Models.ApplicationUser>(options => optio
     .AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddHostedService<LMS.Services.MonthlyLeaveAllocationService>();
+builder.Services.AddScoped<LMS.Services.ILeaveAllocationService, LMS.Services.LeaveAllocationService>();
 
 var app = builder.Build();
 

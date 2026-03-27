@@ -88,36 +88,8 @@ public static class DbSeeder
         await context.SaveChangesAsync();
 
         // ** Auto-allocate default days to all active users for standard paid leaves **
-        var allocatedTypes = await context.LeaveTypes.Where(t => t.DefaultDays > 0 && t.IsEnabled).ToListAsync();
-        var allUsers = await context.Users.Where(u => u.IsActive).ToListAsync();
-
-        int currentYear = DateTime.Now.Year;
-        bool allocationsAdded = false;
-
-        foreach (var user in allUsers)
-        {
-            foreach (var type in allocatedTypes)
-            {
-                bool hasAllocation = await context.LeaveAllocations
-                    .AnyAsync(a => a.EmployeeId == user.Id && a.LeaveTypeId == type.Id && a.Period == currentYear);
-
-                if (!hasAllocation)
-                {
-                    context.LeaveAllocations.Add(new LeaveAllocation
-                    {
-                        EmployeeId = user.Id,
-                        LeaveTypeId = type.Id,
-                        NumberOfDays = type.DefaultDays,
-                        Period = currentYear
-                    });
-                    allocationsAdded = true;
-                }
-            }
-        }
-
-        if (allocationsAdded)
-        {
-            await context.SaveChangesAsync();
-        }
+        // ** Auto-allocate default days to all active users for standard paid leaves **
+        var allocationService = serviceProvider.GetRequiredService<LMS.Services.ILeaveAllocationService>();
+        await allocationService.AllocateDefaultLeavesToAllActiveUsersAsync(DateTime.Now.Year);
     }
 }

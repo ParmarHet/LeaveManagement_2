@@ -201,17 +201,25 @@ public class EmployeeController : Controller
                 ModelState.AddModelError("", "Deceased person's name, relationship, and date of death must be provided for Bereavement Leave.");
                 return View(model);
             }
-            int maxDays = 5;
-            var rel = model.DeceasedRelationship.ToLower();
-            if (rel.Contains("parent") || rel == "spouse" || rel == "child") maxDays = 5;
-            else if (rel == "brother in-law" || rel == "sister in-law" || rel == "spouse grand parent") maxDays = 1;
-            else maxDays = 3;
+
+            // BL Eligibility Criteria (Categorized)
+            int maxDays = 3; // Default for Category B
+            var rel = model.DeceasedRelationship;
+
+            var catA = new[] { "Parent", "Spouse", "Child" };
+            var catC = new[] { "Brother-in-law", "Sister-in-law", "Spouse Grand Parent" };
+
+            if (catA.Contains(rel)) maxDays = 5;
+            else if (catC.Contains(rel)) maxDays = 1;
+            else maxDays = 3; // Category B (Brother, Sister, Grand Parent/Child, In-laws Parents/Children)
 
             if (businessDays > maxDays)
             {
-                ModelState.AddModelError("", $"Maximum Bereavement Leave for this relationship is {maxDays} days.");
+                ModelState.AddModelError("", $"Maximum Bereavement Leave for '{rel}' is {maxDays} day(s). You requested {businessDays} days.");
                 return View(model);
             }
+            
+            // Note: No document required for BL as per latest requirement.
         }
 
         // Rule 11: Study or Medical certs

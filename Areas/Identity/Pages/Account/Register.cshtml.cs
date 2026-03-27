@@ -122,6 +122,11 @@ namespace LMS.Areas.Identity.Pages.Account
             [Required]
             [Display(Name = "Gender")]
             public string Gender { get; set; }
+
+            [Required]
+            [DataType(DataType.Date)]
+            [Display(Name = "Joining Date")]
+            public DateTime DateJoined { get; set; }
         }
 
 
@@ -145,7 +150,7 @@ namespace LMS.Areas.Identity.Pages.Account
                 user.Phone = Input.Phone;
                 user.Shift = Input.Shift;
                 user.Gender = Input.Gender;
-                user.DateJoined = DateTime.UtcNow;
+                user.DateJoined = Input.DateJoined;
                 user.IsActive = false;
                 user.Status = UserStatus.Pending;
 
