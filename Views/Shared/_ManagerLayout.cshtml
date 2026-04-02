@@ -149,7 +149,7 @@
                 </a>
 
                 <div class="nav-section-title">Info</div>
-                <a class="nav-link @(currentAction == "Holidays" ? "active" : "")" asp-controller="Employee" asp-action="Holidays">
+                <a class="nav-link @(currentController == "Holidays" ? "active" : "")" asp-controller="Holidays" asp-action="Index">
                     <i class="fa-solid fa-calendar-days"></i> Holiday Calendar
                 </a>
                 <a class="nav-link @(currentAction == "LeavePolicies" ? "active" : "")" asp-controller="Employee" asp-action="LeavePolicies">

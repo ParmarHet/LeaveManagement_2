@@ -51,10 +51,22 @@ public class EmployeeController : Controller
     [HttpGet]
     public async Task<IActionResult> Apply()
     {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null) return Challenge();
+
         var leaveTypes = await _context.LeaveTypes
             .Where(lt => lt.Code != "WO" && lt.Code != "HD")
             .ToListAsync();
-        var model = new ApplyLeaveViewModel { LeaveTypes = leaveTypes };
+
+        var floatingHolidays = await _context.Holidays
+            .Where(h => h.IsFloating && ((h.Date.Year == DateTime.Now.Year) || h.IsRecurringYearly))
+            .Where(h => (h.DepartmentId == null && h.EmployeeId == null) || (h.DepartmentId == user.DepartmentId) || (h.EmployeeId == user.Id))
+            .ToListAsync();
+
+        var model = new ApplyLeaveViewModel { 
+            LeaveTypes = leaveTypes,
+            AvailableFloatingHolidays = floatingHolidays
+        };
         return View(model);
     }
 
@@ -77,22 +89,23 @@ public class EmployeeController : Controller
         // ── Calculate business days (excluding weekends)
         int businessDays = CountBusinessDays(model.StartDate, model.EndDate);
 
-        // ── Validation: Remove holidays from count
+        // ── Validation: Remove holidays from count (Handling recurring and targeted holidays)
         var holidays = await _context.Holidays
-            .Where(h => h.Date >= model.StartDate && h.Date <= model.EndDate)
+            .Where(h => (h.Date >= model.StartDate && h.Date <= model.EndDate) || (h.IsRecurringYearly && h.Date.Month == model.StartDate.Month && h.Date.Day == model.StartDate.Day))
+            .Where(h => (h.DepartmentId == null && h.EmployeeId == null) || (h.DepartmentId == user.DepartmentId) || (h.EmployeeId == user.Id))
             .ToListAsync();
         businessDays -= holidays.Count;
-
-        if (businessDays <= 0)
-        {
-            ModelState.AddModelError("", "Your selected dates fall entirely on weekends or public holidays.");
-            return View(model);
-        }
 
         var leaveTypeObj = model.LeaveTypes.FirstOrDefault(lt => lt.Id == model.LeaveTypeId);
         if (leaveTypeObj == null)
         {
             ModelState.AddModelError("", "Invalid leave type.");
+            return View(model);
+        }
+
+        if (businessDays <= 0 && leaveTypeObj.Code != "FD")
+        {
+            ModelState.AddModelError("", "Your selected dates fall entirely on weekends or public holidays.");
             return View(model);
         }
 
@@ -237,12 +250,15 @@ public class EmployeeController : Controller
         // Rule 15: FD
         if (leaveTypeObj.Code == "FD")
         {
-            var isFloatingHoliday = await _context.Holidays.AnyAsync(h => h.Date == model.StartDate.Date && h.IsFloating);
+            var isFloatingHoliday = holidays.Any(h => h.IsFloating && 
+                (h.Date.Date == model.StartDate.Date || (h.IsRecurringYearly && h.Date.Month == model.StartDate.Month && h.Date.Day == model.StartDate.Day)));
+            
             if (!isFloatingHoliday)
             {
                  ModelState.AddModelError("", "Floating Holiday can only be applied on designated Floating Holiday dates.");
                  return View(model);
             }
+            businessDays = 1; // FD is always 1 day
         }
 
         // Rule 12: Attendance
