@@ -158,9 +158,9 @@
            asp-controller="Departments" asp-action="Index">
             <i class="bi bi-diagram-3"></i> Departments
         </a>
-        <a class="sidebar-link @(ViewContext.RouteData.Values["action"]?.ToString() == "HolidayCalendar" ? "active" : "")"
-           asp-controller="Admin" asp-action="HolidayCalendar">
-            <i class="bi bi-calendar-event"></i> Holiday Calendar
+        <a class="sidebar-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Holidays" ? "active" : "")"
+           asp-controller="Holidays" asp-action="Manage">
+            <i class="bi bi-calendar-event"></i> Holiday Management
         </a>
         <a class="sidebar-link @(ViewContext.RouteData.Values["action"]?.ToString() == "LeaveStructure" ? "active" : "")"
            asp-controller="Admin" asp-action="LeaveStructure">
