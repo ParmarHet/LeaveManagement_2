@@ -65,6 +65,7 @@ public class AdminController : Controller
             UpcomingHolidayList       = upcomingHolidays
         };
 
+        ViewBag.Departments = await _context.Departments.OrderBy(d => d.Name).ToListAsync();
         return View(model);
     }
 
@@ -81,19 +82,119 @@ public class AdminController : Controller
         var leaves = await GetMappedLeaves("Pending");
         return View(leaves);
     }
-
-    // ─── APPROVED LEAVES ────────────────────────────────────────────────────
-    public async Task<IActionResult> ApprovedLeaves()
+    
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Approve(int id, string? remarks)
     {
-        var leaves = await GetMappedLeaves("Approved");
-        return View(leaves);
+        var admin = await _userManager.GetUserAsync(User);
+        if (admin == null) return Challenge();
+
+        var leave = await _context.LeaveRequests.FindAsync(id);
+        if (leave == null) return NotFound();
+
+        leave.Approved = true;
+        leave.ReviewerId = admin.Id;
+        leave.ManagerRemarks = remarks;
+        leave.DateActioned = DateTime.UtcNow;
+
+        var leaveType = await _context.LeaveTypes.FindAsync(leave.LeaveTypeId);
+        if (leaveType != null)
+        {
+            if (leaveType.Code == "LW")
+            {
+                var fortyFiveDaysAgo = DateTime.Today.AddDays(-45);
+                var recentLwps = await _context.LeaveRequests
+                    .Where(r => r.RequestingEmployeeId == leave.RequestingEmployeeId && r.Approved == true && !r.Cancelled && r.LeaveTypeId == leave.LeaveTypeId && r.StartDate >= fortyFiveDaysAgo)
+                    .ToListAsync();
+                
+                int totalLwpDays = 0;
+                foreach(var l in recentLwps) 
+                {
+                    for (var d = l.StartDate; d <= l.EndDate; d = d.AddDays(1)) if (d.DayOfWeek != DayOfWeek.Saturday && d.DayOfWeek != DayOfWeek.Sunday) totalLwpDays++;
+                }
+                
+                int currentLwpDays = 0;
+                for (var d = leave.StartDate; d <= leave.EndDate; d = d.AddDays(1)) if (d.DayOfWeek != DayOfWeek.Saturday && d.DayOfWeek != DayOfWeek.Sunday) currentLwpDays++;
+
+                if (totalLwpDays + currentLwpDays >= 15 && totalLwpDays < 15)
+                {
+                    var plType = await _context.LeaveTypes.FirstOrDefaultAsync(l => l.Code == "PL");
+                    if (plType != null)
+                    {
+                        var plAlloc = await _context.LeaveAllocations.FirstOrDefaultAsync(a => a.EmployeeId == leave.RequestingEmployeeId && a.LeaveTypeId == plType.Id && a.Period == DateTime.Now.Year);
+                        if (plAlloc != null && plAlloc.NumberOfDays > 0)
+                        {
+                            plAlloc.NumberOfDays -= 1;
+                            _context.LeaveAllocations.Update(plAlloc);
+                        }
+                    }
+                }
+            }
+            else if (leaveType.Code == "CO")
+            {
+                int businessDays = 0;
+                for (var d = leave.StartDate; d <= leave.EndDate; d = d.AddDays(1)) if (d.DayOfWeek != DayOfWeek.Saturday && d.DayOfWeek != DayOfWeek.Sunday) businessDays++;
+                businessDays -= await _context.Holidays.CountAsync(h => h.Date >= leave.StartDate && h.Date <= leave.EndDate);
+                
+                var unusedCOs = await _context.CompensatoryOffs.Where(c => c.EmployeeId == leave.RequestingEmployeeId && !c.IsUsed && c.ExpiryDate >= leave.EndDate).OrderBy(c => c.ExpiryDate).Take(businessDays).ToListAsync();
+                foreach(var co in unusedCOs)
+                {
+                    co.IsUsed = true;
+                    _context.CompensatoryOffs.Update(co);
+                }
+            }
+        }
+
+        await _context.SaveChangesAsync();
+
+        // Notify Employee
+        var notification = new Notification
+        {
+            UserId = leave.RequestingEmployeeId,
+            Title = "Leave Approved (Admin)",
+            Message = $"Your leave request for {leave.StartDate:dd MMM} has been Approved by Admin.",
+            CreatedAt = DateTime.UtcNow,
+            IsRead = false
+        };
+        _context.Notifications.Add(notification);
+        await _context.SaveChangesAsync();
+
+        TempData["Success"] = "Leave request approved successfully.";
+        return RedirectToAction(nameof(LeaveHistory));
     }
 
-    // ─── REJECTED LEAVES ────────────────────────────────────────────────────
-    public async Task<IActionResult> RejectedLeaves()
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Reject(int id, string? remarks)
     {
-        var leaves = await GetMappedLeaves("Rejected");
-        return View(leaves);
+        var admin = await _userManager.GetUserAsync(User);
+        if (admin == null) return Challenge();
+
+        var leave = await _context.LeaveRequests.FindAsync(id);
+        if (leave == null) return NotFound();
+
+        leave.Approved = false;
+        leave.ReviewerId = admin.Id;
+        leave.ManagerRemarks = remarks;
+        leave.DateActioned = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+
+        // Notify Employee
+        var notification = new Notification
+        {
+            UserId = leave.RequestingEmployeeId,
+            Title = "Leave Rejected (Admin)",
+            Message = $"Your leave request for {leave.StartDate:dd MMM} has been Rejected by Admin.",
+            CreatedAt = DateTime.UtcNow,
+            IsRead = false
+        };
+        _context.Notifications.Add(notification);
+        await _context.SaveChangesAsync();
+
+        TempData["Success"] = "Leave request rejected.";
+        return RedirectToAction(nameof(LeaveHistory));
     }
 
     // ─── LEAVE HISTORY (CONSOLIDATED) ───────────────────────────────────────
@@ -162,7 +263,8 @@ public class AdminController : Controller
             TodayLeaves = todayLeaves,
             PendingLeaves = pendingLeaves,
             DepartmentStats = deptStats,
-            EmployeeStats = empStats
+            EmployeeStats = empStats,
+            LeaveTypes = await _context.LeaveTypes.OrderBy(l => l.Name).ToListAsync()
         };
 
         return View(model);

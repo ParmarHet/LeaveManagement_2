@@ -4,69 +4,96 @@
     Layout = User.IsInRole("Admin") ? "_AdminLayout" : (User.IsInRole("Manager") ? "_ManagerLayout" : "_EmployeeLayout");
 }
 
-<div class="row g-4 mb-4">
-    <div class="col-sm-6 col-xl-3">
-        <div class="stat-card shadow-sm" style="border-left: 5px solid #4070f4; background: white; padding: 1.5rem; border-radius: 12px;">
-            <p class="text-muted small fw-bold text-uppercase mb-1">Pending Requests</p>
-            <h2 class="fw-bold mb-0" style="color: #4070f4">@Model.PendingRequests</h2>
+<div class="ds-page-header align-items-center">
+    <h1 class="ds-page-title">Personal<br>Dashboard</h1>
+    
+    <div class="d-flex gap-4">
+        <!-- Pending Card -->
+        <div class="ds-stat-card ds-card-warm-green">
+            <div class="ds-stat-label">Pending Requests</div>
+            <div class="ds-stat-value">@Model.PendingRequests</div>
+            <div class="ds-stat-icon-floating"><i class="bi bi-clock"></i></div>
         </div>
-    </div>
-    <div class="col-sm-6 col-xl-3">
-        <div class="stat-card shadow-sm" style="border-left: 5px solid #28a745; background: white; padding: 1.5rem; border-radius: 12px;">
-            <p class="text-muted small fw-bold text-uppercase mb-1">Approved (Year)</p>
-            <h2 class="fw-bold mb-0" style="color: #28a745">@Model.ApprovedThisYear</h2>
+
+        <!-- Approved Card -->
+        <div class="ds-stat-card ds-card-palette-2">
+            <div class="ds-stat-label">Approved (Year)</div>
+            <div class="ds-stat-value">@Model.ApprovedThisYear</div>
+            <div class="ds-stat-icon-floating"><i class="bi bi-check-circle"></i></div>
         </div>
-    </div>
-    @foreach (var b in Model.LeaveBalances.Take(2))
-    {
-        <div class="col-sm-6 col-xl-3">
-            <div class="stat-card shadow-sm" style="border-left: 5px solid #fd7e14; background: white; padding: 1.5rem; border-radius: 12px;">
-                <p class="text-muted small fw-bold text-uppercase mb-1">@b.LeaveTypeName Remaining</p>
-                <h2 class="fw-bold mb-0" style="color: #fd7e14">@b.Remaining <small class="text-muted" style="font-size:14px">/ @b.Allocated</small></h2>
+
+        <!-- Holidays Remaining Card -->
+        @{
+            var holi = Model.LeaveBalances.FirstOrDefault(b => b.LeaveTypeName.Contains("Holiday", StringComparison.OrdinalIgnoreCase) || b.LeaveTypeCode == "HO");
+        }
+        @if (holi != null)
+        {
+            <div class="ds-stat-card ds-card-palette-3">
+                <div class="ds-stat-label">@holi.LeaveTypeName Remaining</div>
+                <div class="ds-stat-value">@holi.Remaining <span class="fs-6 opacity-75 font-monospace">/ @holi.Allocated</span></div>
+                <div class="ds-stat-icon-floating"><i class="bi bi-calendar3"></i></div>
             </div>
-        </div>
-    }
+        }
+        else if (Model.LeaveBalances.Any())
+        {
+            var firstBalance = Model.LeaveBalances.First();
+            <div class="ds-stat-card ds-card-palette-3">
+                <div class="ds-stat-label">@firstBalance.LeaveTypeName Remaining</div>
+                <div class="ds-stat-value">@firstBalance.Remaining <span class="fs-6 opacity-75 font-monospace">/ @firstBalance.Allocated</span></div>
+                <div class="ds-stat-icon-floating"><i class="bi bi-wallet2"></i></div>
+            </div>
+        }
+    </div>
 </div>
 
 <div class="row g-4">
     <div class="col-lg-8">
-        <div class="content-card">
-            <h5 class="fw-bold mb-3">Recent Leave Requests</h5>
+        <div class="ds-filter-bar mb-3">
+            <select id="statusFilter" class="form-select w-auto rounded-pill border-light text-muted small" onchange="filterLeaveHistory()">
+                <option value="All">All Status</option>
+                <option value="Approved">Approved</option>
+                <option value="Pending">Pending</option>
+                <option value="Rejected">Rejected</option>
+                <option value="Cancelled">Cancelled</option>
+            </select>
+        </div>
+        
+        <div class="ds-table-container mt-0">
+            <div class="px-3 py-2 border-bottom d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold mb-0">Recent Leave Requests</h6>
+                <a asp-action="History" class="small text-decoration-none">View All</a>
+            </div>
             @if (!Model.RecentLeaves.Any())
             {
-                <div class="text-center text-muted py-4">
-                    <i class="fa-solid fa-inbox fa-2x mb-2"></i>
-                    <p>No leave requests yet. <a asp-action="Apply">Apply for your first leave →</a></p>
+                <div class="text-center text-muted py-5">
+                    <i class="bi bi-inbox fs-1 d-block mb-2 opacity-25"></i>
+                    <p class="small mb-0">No leave requests yet. <a asp-action="Apply">Apply now →</a></p>
                 </div>
             }
             else
             {
-                <table class="table table-hover">
-                    <thead class="table-light"><tr><th>Type</th><th>From</th><th>To</th><th>Status</th></tr></thead>
+                <table class="ds-table" id="leaveHistoryTable">
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>From</th>
+                            <th>To</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
                     <tbody>
                     @foreach (var l in Model.RecentLeaves)
                     {
-                        <tr>
-                            <td>@l.LeaveType?.Name</td>
+                        var status = l.Cancelled ? "Cancelled" : (l.Approved == null ? "Pending" : (l.Approved == true ? "Approved" : "Rejected"));
+                        <tr data-status="@status">
+                            <td><span class="fw-bold">@l.LeaveType?.Name</span></td>
                             <td>@l.StartDate.ToString("dd MMM yyyy")</td>
                             <td>@l.EndDate.ToString("dd MMM yyyy")</td>
                             <td>
-                                @if (l.Cancelled)
-                                {
-                                    <span class="badge badge-cancelled">Cancelled</span>
-                                }
-                                else if (l.Approved == null)
-                                {
-                                    <span class="badge badge-pending">Pending</span>
-                                }
-                                else if (l.Approved == true)
-                                {
-                                    <span class="badge badge-approved">Approved</span>
-                                }
-                                else
-                                {
-                                    <span class="badge badge-rejected">Rejected</span>
-                                }
+                                @if (status == "Cancelled") { <div class="ds-status-dot" style="background:#6b7280" title="Cancelled">C</div> }
+                                else if (status == "Pending") { <div class="ds-status-dot ds-dot-pending" title="Pending">P</div> }
+                                else if (status == "Approved") { <div class="ds-status-dot ds-dot-success" title="Approved">A</div> }
+                                else { <div class="ds-status-dot ds-dot-cancel" title="Rejected">R</div> }
                             </td>
                         </tr>
                     }
@@ -76,24 +103,44 @@
         </div>
     </div>
     <div class="col-lg-4">
-        <div class="content-card">
-            <h5 class="fw-bold mb-3">Leave Balance Summary</h5>
-            @foreach (var b in Model.LeaveBalances)
+        <div class="ds-table-container mt-0 p-4">
+            <h6 class="fw-bold mb-4">Leave Balance Summary</h6>
+            @{
+                var filteredBalances = Model.LeaveBalances.Where(b => 
+                    (b.LeaveTypeCode != "CO" && b.LeaveTypeCode != "LW" && b.LeaveTypeCode != "ML" && b.LeaveTypeCode != "BL") || 
+                    b.Used > 0 || b.Allocated > 0).ToList();
+            }
+            @foreach (var b in filteredBalances)
             {
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between mb-1">
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between mb-2">
                         <span class="fw-semibold small">@b.LeaveTypeName</span>
                         <span class="small text-muted">@b.Remaining / @b.Allocated days</span>
                     </div>
-                    <div class="progress" style="height:8px">
-                        <div class="progress-bar" style="width:@(b.Allocated > 0 ? (b.Used * 100 / b.Allocated) : 0)%; background:var(--accent)"></div>
+                    <div class="progress" style="height:10px; border-radius: 5px; background: #f3f4f6;">
+                        <div class="progress-bar" style="width:@(b.Allocated > 0 ? (b.Used * 100 / b.Allocated) : 0)%; background:#2563eb; border-radius: 5px;"></div>
                     </div>
                 </div>
             }
-            @if (!Model.LeaveBalances.Any())
+            @if (!filteredBalances.Any())
             {
-                <p class="text-muted small">No leave allocations found. Contact your HR Admin.</p>
+                <p class="text-muted small text-center py-4">No active leave allocations found.</p>
             }
         </div>
     </div>
 </div>
+
+<script>
+    function filterLeaveHistory() {
+        const filterStatus = document.getElementById('statusFilter').value;
+        const rows = document.querySelectorAll('#leaveHistoryTable tbody tr');
+
+        rows.forEach(row => {
+            if (filterStatus === 'All' || row.dataset.status === filterStatus) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+</script>

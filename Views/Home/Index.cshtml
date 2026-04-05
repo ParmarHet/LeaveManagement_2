@@ -1,73 +1,320 @@
-﻿@using LMS.Constants
+@using LMS.Constants
 @{
-    ViewData["Title"] = "Leave Management System";
+ViewData["Title"] = "LEAVE PRO";
 }
 
-<div class="hero-section">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-6">
-                <span class="section-label">Simplify Your Workplace</span>
-                <h1 class="hero-title">Streamline Your Time-Off Management</h1>
-                <p class="hero-subtitle">A professional and automated leave management system designed to empower employees and managers through transparency and efficiency.</p>
-                <div class="d-flex gap-3">
-                    <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-premium btn-primary-premium">Get Started</a>
-                    <a href="#features" class="btn btn-premium btn-outline-secondary">Learn More</a>
-                </div>
-            </div>
-            <div class="col-lg-6 d-none d-lg-block">
-                <div class="p-5">
-                    <img src="https://img.freepik.com/free-vector/office-concept-illustration_114360-1412.jpg" alt="LMS Illustration" class="img-fluid rounded-4 shadow-lg">
-                </div>
-            </div>
-        </div>
-    </div>
+<style>
+
+/* ===== Soft Mint Green Theme ===== */
+
+.hero-section{
+background:linear-gradient(180deg,#ffffff,#f0fdf4);
+padding:80px 0 60px;
+}
+
+.feature-card{
+background:#ffffff;
+border-radius:16px;
+padding:32px;
+height:100%;
+transition:0.3s;
+box-shadow:0 2px 12px rgba(0,0,0,0.04);
+border:1px solid #eef7f1;
+}
+
+.feature-card:hover{
+transform:translateY(-5px);
+box-shadow:0 8px 24px rgba(0,0,0,0.07);
+border-color:#d1fae5;
+}
+
+.feature-icon{
+width:52px;
+height:52px;
+border-radius:14px;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:22px;
+margin-bottom:18px;
+}
+
+/* icon colors */
+
+.fi-green{background:#ecfdf5;color:#059669;}
+.fi-gray{background:#f3f4f6;color:#4b5563;}
+.fi-amber{background:#fef9c3;color:#b45309;}
+
+.section-badge{
+background:#ecfdf5;
+color:#059669;
+padding:6px 16px;
+border-radius:20px;
+font-size:13px;
+font-weight:600;
+letter-spacing:0.3px;
+}
+
+/* CTA section */
+
+.cta-section{
+background:linear-gradient(135deg,#bbf7d0,#dcfce7);
+}
+
+/* buttons */
+
+.btn-green-primary{
+background:#86efac;
+color:#065f46;
+border:none;
+border-radius:10px;
+transition:all 0.25s ease;
+}
+
+.btn-green-primary:hover{
+background:#6ee7b7;
+transform:translateY(-2px);
+box-shadow:0 6px 20px rgba(134,239,172,0.4);
+}
+
+.btn-green-outline{
+border:1.5px solid #bbf7d0;
+color:#047857;
+border-radius:10px;
+transition:all 0.25s ease;
+}
+
+.btn-green-outline:hover{
+background:#ecfdf5;
+color:#047857;
+}
+
+.feature-card h4{color:#111827;}
+.feature-card p,.feature-card li{color:#6b7280;}
+
+</style>
+
+<!-- HERO SECTION -->
+
+<section class="hero-section">
+
+<div class="container">
+
+<div class="row align-items-center">
+
+<div class="col-lg-6">
+
+<span class="section-badge mb-3 d-inline-block">
+<i class="fa-solid fa-leaf me-1"></i> Workplace Automation
+</span>
+
+<h1 class="display-5 fw-bold mb-3" style="color:#1a1a2e;letter-spacing:-0.5px;">
+Smart Leave Management<br/>for Modern Teams
+</h1>
+
+<p class="lead mb-4" style="color:#6b7280;">
+Manage employee leave requests, approvals, and tracking
+through a powerful yet simple platform designed for
+organizations of any size.
+</p>
+
+<div class="d-flex flex-wrap gap-3">
+
+<a asp-area="Identity"
+asp-page="/Account/Login"
+class="btn btn-lg px-4 fw-semibold btn-green-primary">
+
+Get Started <i class="fa-solid fa-arrow-right ms-2"></i>
+
+</a>
+
+<a href="#features"
+class="btn btn-lg px-4 fw-semibold btn-green-outline">
+
+Learn More
+
+</a>
+
 </div>
 
-<div class="container py-5" id="features">
-    <div class="text-center mb-5">
-        <span class="section-label">Modules</span>
-        <h2 class="fw-bold">Designed for Every Role</h2>
-        <p class="text-muted">Explore the specialized features built for your specific needs.</p>
-    </div>
-    <div class="row g-4">
-        <!-- Employee Card -->
-        <div class="col-md-4">
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fa-solid fa-user-check"></i>
-                </div>
-                <h3>Employee Portal</h3>
-                <p>Easy-to-use interface to apply for leave, track approval status, and view holiday calendars in real-time.</p>
-            </div>
-        </div>
-        <!-- Manager Card -->
-        <div class="col-md-4">
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fa-solid fa-user-tie"></i>
-                </div>
-                <h3>Manager Portal</h3>
-                <p>Efficiently review and manage team leave requests with conflict alerts and team availability insights.</p>
-            </div>
-        </div>
-        <!-- Admin Card -->
-        <div class="col-md-4">
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fa-solid fa-shield-halved"></i>
-                </div>
-                <h3>Admin Center</h3>
-                <p>Fully customize leave policies, manage users, and configure organization-wide settings from a central hub.</p>
-            </div>
-        </div>
-    </div>
+<div class="mt-4 small d-flex flex-wrap gap-3" style="color:#6b7280;">
+
+<span>
+<i class="fa-solid fa-circle-check me-1" style="color:#22c55e;"></i>
+Role-Based Access
+</span>
+
+<span>
+<i class="fa-solid fa-circle-check me-1" style="color:#22c55e;"></i>
+Automated Requests
+</span>
+
+<span>
+<i class="fa-solid fa-circle-check me-1" style="color:#22c55e;"></i>
+Real-Time Tracking
+</span>
+
 </div>
 
-<div class="bg-primary text-white py-5 mt-5">
-    <div class="container text-center">
-        <h3 class="fw-bold mb-4">Ready to automate your leave process?</h3>
-        <a asp-area="Identity" asp-page="/Account/Register" class="btn btn-premium btn-light">Create Account</a>
-    </div>
 </div>
 
+<div class="col-lg-6 text-center mt-5 mt-lg-0">
+
+<img src="https://img.freepik.com/free-vector/office-concept-illustration_114360-1412.jpg"
+class="img-fluid rounded-4"
+style="max-height:400px;"
+alt="Leave Management Illustration">
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+<!-- FEATURES SECTION -->
+
+<section class="py-5" id="features" style="background:#fafafa;">
+
+<div class="container">
+
+<div class="text-center mb-5">
+
+<span class="section-badge">
+<i class="fa-solid fa-grid me-1"></i> Platform Modules
+</span>
+
+<h2 class="fw-bold mt-3" style="color:#111827;">
+Built for Every Role
+</h2>
+
+<p style="color:#6b7280;">
+A complete leave management ecosystem designed
+for employees, managers, and administrators.
+</p>
+
+</div>
+
+<div class="row g-4">
+
+<!-- Employee -->
+
+<div class="col-md-4">
+
+<div class="feature-card">
+
+<div class="feature-icon fi-green">
+<i class="fa-solid fa-user-check"></i>
+</div>
+
+<h4 class="fw-bold">Employee Portal</h4>
+
+<p>
+Apply for leave, track approval status, and view leave history through a simple dashboard.
+</p>
+
+<ul class="small ps-3">
+
+<li>Apply for leave online</li>
+<li>Track request status</li>
+<li>View leave balance</li>
+<li>Holiday calendar access</li>
+
+</ul>
+
+</div>
+
+</div>
+
+<!-- Manager -->
+
+<div class="col-md-4">
+
+<div class="feature-card">
+
+<div class="feature-icon fi-gray">
+<i class="fa-solid fa-user-tie"></i>
+</div>
+
+<h4 class="fw-bold">Manager Dashboard</h4>
+
+<p>
+Review leave requests, approve or reject applications, and monitor team availability.
+</p>
+
+<ul class="small ps-3">
+
+<li>Approve / reject leave</li>
+<li>View team leave schedule</li>
+<li>Prevent leave conflicts</li>
+<li>Track employee availability</li>
+
+</ul>
+
+</div>
+
+</div>
+
+<!-- Admin -->
+
+<div class="col-md-4">
+
+<div class="feature-card">
+
+<div class="feature-icon fi-amber">
+<i class="fa-solid fa-shield-halved"></i>
+</div>
+
+<h4 class="fw-bold">Admin Control Center</h4>
+
+<p>
+Manage users, configure leave policies, and control system-wide settings.
+</p>
+
+<ul class="small ps-3">
+
+<li>Manage employees</li>
+<li>Configure leave types</li>
+<li>System configuration</li>
+<li>Role management</li>
+
+</ul>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+<!-- CTA SECTION -->
+
+<section class="cta-section text-dark py-5">
+
+<div class="container text-center">
+
+<h2 class="fw-bold mb-3">
+Ready to Simplify Leave Management?
+</h2>
+
+<p class="mb-4" style="color:#065f46;">
+Create an account and start managing employee leave
+requests more efficiently.
+</p>
+
+<a asp-area="Identity"
+asp-page="/Account/Register"
+class="btn btn-light btn-lg px-5 fw-semibold"
+style="border-radius:10px;">
+
+Create Account
+
+</a>
+
+</div>
+
+</section>

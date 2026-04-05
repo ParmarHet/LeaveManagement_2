@@ -49,3 +49,21 @@ public class EmployeeDashboardViewModel
     public int PendingRequests { get; set; }
     public int ApprovedThisYear { get; set; }
 }
+
+public class UpdateProfileViewModel
+{
+    [DataType(DataType.Date)]
+    public DateTime? DateOfBirth { get; set; }
+    
+    [StringLength(20)]
+    public string Gender { get; set; } = string.Empty;
+    
+    [StringLength(500)]
+    public string Address { get; set; } = string.Empty;
+    
+    [StringLength(50)]
+    public string Phone { get; set; } = string.Empty;
+    
+    [StringLength(50)]
+    public string Shift { get; set; } = string.Empty;
+}

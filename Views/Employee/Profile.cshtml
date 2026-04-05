@@ -5,21 +5,24 @@
     var initials = $"{Model.FirstName?.Substring(0,1)}{Model.LastName?.Substring(0,1)}".ToUpper();
 }
 
+<div class="ds-page-header align-items-center mb-4">
+    <h1 class="ds-page-title">Personal<br>Profile</h1>
+</div>
+
 <div class="row g-4">
     <div class="col-lg-4">
         <div class="content-card text-center">
-            <div style="width:90px;height:90px;background:var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:32px;font-weight:700;color:white">
+            <div style="width:90px;height:90px;background:var(--ds-palette-3);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:32px;font-weight:700;color:white">
                 @initials
             </div>
-            <h5 class="fw-bold">@Model.FirstName @Model.LastName</h5>
             <p class="text-muted mb-1">@Model.Email</p>
-            <span class="badge" style="background:var(--accent)">@Model.Shift Shift</span>
+            <span class="badge" style="background:var(--ds-palette-2)">@Model.Shift Shift</span>
 
             <hr class="my-3">
             <div class="text-start">
                 <div class="d-flex justify-content-between py-2 border-bottom">
                     <span class="text-muted small">Status</span>
-                    <span class="badge badge-approved">@Model.Status</span>
+                    <span class="badge badge-approved" style="color: black !important;">@Model.Status</span>
                 </div>
                 <div class="d-flex justify-content-between py-2 border-bottom">
                     <span class="text-muted small">Date Joined</span>
@@ -34,28 +37,75 @@
     </div>
 
     <div class="col-lg-8">
-        <div class="content-card mb-4">
-            <h6 class="fw-bold mb-3">Contact Information</h6>
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <label class="text-muted small">Email Address</label>
-                    <p class="fw-semibold mb-0">@Model.Email</p>
-                </div>
-                <div class="col-md-6">
-                    <label class="text-muted small">Phone</label>
-                    <p class="fw-semibold mb-0">@(string.IsNullOrEmpty(Model.Phone) ? "N/A" : Model.Phone)</p>
-                </div>
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                @TempData["Success"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                @TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <div class="content-card mb-4">
+            <h6 class="fw-bold mb-3">Edit Profile Information</h6>
+            <form asp-action="UpdateProfile" method="post">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small mb-1">Email Address (Read-only)</label>
+                        <input type="email" class="form-control bg-light" value="@Model.Email" readonly />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small mb-1">Phone Number</label>
+                        <input type="text" name="Phone" class="form-control" value="@Model.Phone" placeholder="Enter phone number" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small mb-1">Date of Birth</label>
+                        <input type="date" name="DateOfBirth" class="form-control" value="@(Model.DateOfBirth?.ToString("yyyy-MM-dd"))" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small mb-1">Gender</label>
+                        <select name="Gender" class="form-select">
+                            <option value="">Select Gender</option>
+                            @if(Model.Gender == "Male") { <option value="Male" selected>Male</option> } else { <option value="Male">Male</option> }
+                            @if(Model.Gender == "Female") { <option value="Female" selected>Female</option> } else { <option value="Female">Female</option> }
+                            @if(Model.Gender == "Other") { <option value="Other" selected>Other</option> } else { <option value="Other">Other</option> }
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label text-muted small mb-1">Address</label>
+                        <textarea name="Address" class="form-control" rows="2" placeholder="Enter full address">@Model.Address</textarea>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small mb-1">Shift Preference</label>
+                        <select name="Shift" class="form-select">
+                            <option value="">Select Shift</option>
+                            @if(Model.Shift == "Day") { <option value="Day" selected>Day</option> } else { <option value="Day">Day</option> }
+                            @if(Model.Shift == "Night") { <option value="Night" selected>Night</option> } else { <option value="Night">Night</option> }
+                            @if(Model.Shift == "Rotational") { <option value="Rotational" selected>Rotational</option> } else { <option value="Rotational">Rotational</option> }
+                        </select>
+                    </div>
+                    
+                    <div class="col-12 mt-4 text-end">
+                        <button type="submit" class="btn btn-primary px-4"><i class="bi bi-save me-2"></i> Update Profile</button>
+                    </div>
+                </div>
+            </form>
         </div>
 
         <div class="content-card">
             <h6 class="fw-bold mb-3">Organizational Details</h6>
             <div class="row g-3">
-                <div class="col-md-6 mb-2">
+                <div class="col-md-6">
                     <label class="text-muted small">Department</label>
                     <p class="fw-semibold mb-0">@(Model.Department?.Name ?? "Not Assigned")</p>
                 </div>
-                <div class="col-md-6 mb-2">
+                <div class="col-md-6">
                     <label class="text-muted small">Reporting Manager</label>
                     <p class="fw-semibold mb-0 text-primary">
                         @if (Model.Manager != null)
@@ -64,14 +114,6 @@
                         }
                         else { <span class="text-muted">Not Assigned</span> }
                     </p>
-                    @if (Model.Manager != null)
-                    {
-                        <small class="text-muted d-block">@Model.Manager.Email</small>
-                    }
-                </div>
-                <div class="col-md-6">
-                    <label class="text-muted small">Shift</label>
-                    <p class="fw-semibold mb-0">@(string.IsNullOrEmpty(Model.Shift) ? "N/A" : Model.Shift)</p>
                 </div>
             </div>
         </div>
