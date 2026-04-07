@@ -17,37 +17,37 @@
 </div>
 
 <!-- TOP STATS -->
-<div class="row g-3 mb-4">
+<div class="row g-4 mb-4">
     <div class="col-md-4">
-        <div class="stat-card">
-            <div class="stat-icon" style="background:#fee2e2">
-                <i class="bi bi-person-x-fill" style="color:#dc2626"></i>
+        <div class="stat-card shadow-sm border-0 d-flex align-items-center p-4" style="background: linear-gradient(135deg, #fff5f5 0%, #fff 100%); border-radius: 20px;">
+            <div class="stat-icon me-4 d-flex align-items-center justify-content-center" style="width: 70px; height: 70px; background: #ffe3e3; border-radius: 20px; box-shadow: 0 10px 20px rgba(225, 29, 72, 0.1);">
+                <i class="bi bi-person-x-fill" style="color: #e11d48; font-size: 2rem;"></i>
             </div>
             <div>
-                <div class="stat-value">@Model.OnLeaveTodayCount</div>
-                <div class="stat-label">On Leave Today</div>
+                <div class="stat-value fw-bold text-dark" style="font-size: 2rem; line-height: 1;">@Model.OnLeaveTodayCount</div>
+                <div class="stat-label text-muted small text-uppercase ls-wide fw-bold">On Leave Today</div>
             </div>
         </div>
     </div>
     <div class="col-md-4">
-        <div class="stat-card">
-            <div class="stat-icon" style="background:#fef3c7">
-                <i class="bi bi-hourglass-split" style="color:#d97706"></i>
+        <div class="stat-card shadow-sm border-0 d-flex align-items-center p-4" style="background: linear-gradient(135deg, #fffbeb 0%, #fff 100%); border-radius: 20px;">
+            <div class="stat-icon me-4 d-flex align-items-center justify-content-center" style="width: 70px; height: 70px; background: #fef3c7; border-radius: 20px; box-shadow: 0 10px 20px rgba(217, 119, 6, 0.1);">
+                <i class="bi bi-hourglass-split" style="color: #d97706; font-size: 2rem;"></i>
             </div>
             <div>
-                <div class="stat-value">@Model.PendingApprovalsCount</div>
-                <div class="stat-label">Pending Approvals</div>
+                <div class="stat-value fw-bold text-dark" style="font-size: 2rem; line-height: 1;">@Model.PendingApprovalsCount</div>
+                <div class="stat-label text-muted small text-uppercase ls-wide fw-bold">Pending Approvals</div>
             </div>
         </div>
     </div>
     <div class="col-md-4">
-        <div class="stat-card" style="border-left: 4px solid #6366f1">
-            <div class="stat-icon" style="background:#ede9fe">
-                <i class="bi bi-people-fill" style="color:#6366f1"></i>
+        <div class="stat-card shadow-sm border-0 d-flex align-items-center p-4" style="background: linear-gradient(135deg, #eff6ff 0%, #fff 100%); border-radius: 20px;">
+            <div class="stat-icon me-4 d-flex align-items-center justify-content-center" style="width: 70px; height: 70px; background: #dbeafe; border-radius: 20px; box-shadow: 0 10px 20px rgba(37, 99, 235, 0.1);">
+                <i class="bi bi-people-fill" style="color: #2563eb; font-size: 2rem;"></i>
             </div>
             <div>
-                <div class="stat-value">@Model.TotalAbsent</div>
-                <div class="stat-label">Total Absent Today</div>
+                <div class="stat-value fw-bold text-dark" style="font-size: 2rem; line-height: 1;">@Model.TotalAbsent</div>
+                <div class="stat-label text-muted small text-uppercase ls-wide fw-bold">Total Absent Today</div>
             </div>
         </div>
     </div>
@@ -65,6 +65,9 @@
     </li>
     <li class="nav-item">
         <button class="nav-link" id="stats-tab" data-bs-toggle="pill" data-bs-target="#stats" type="button">Employee/Manager Statistics</button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" id="structure-tab" data-bs-toggle="pill" data-bs-target="#structure" type="button">Leave Structure</button>
     </li>
 </ul>
 
@@ -115,24 +118,35 @@
                         <th>Requested On</th>
                         <th>Period</th>
                         <th>Days</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @if(Model.PendingLeaves.Any()) {
                         @foreach (var leave in Model.PendingLeaves) {
-                            <tr>
+                            <tr style="transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f8fafc';" onmouseout="this.style.backgroundColor='';">
                                 <td>
                                     <div class="fw-bold">@leave.EmployeeName</div>
                                     <div class="text-muted smaller">@leave.EmployeeEmail</div>
                                 </td>
-                                <td><span class="badge bg-warning bg-opacity-10 text-warning">@leave.LeaveTypeName</span></td>
+                                <td><span class="badge" style="background-color: #fef08a; color: #854d0e; border-radius: 12px; padding: 6px 10px;">@leave.LeaveTypeName</span></td>
                                 <td>@leave.DateRequested.ToString("dd MMM yyyy")</td>
                                 <td>@leave.StartDate.ToString("dd MMM") - @leave.EndDate.ToString("dd MMM yyyy")</td>
-                                <td>@leave.TotalDays Days</td>
+                                <td><span class="badge bg-light text-dark border">@leave.TotalDays Days</span></td>
+                                <td>
+                                    <form asp-action="Approve" asp-controller="Admin" method="post" class="d-inline">
+                                        <input type="hidden" name="id" value="@leave.Id" />
+                                        <button type="submit" class="btn btn-sm" style="background-color: #4ade80; color: white; border-radius: 20px; font-weight: 500;"><i class="bi bi-check-circle me-1"></i> Accept</button>
+                                    </form>
+                                    <form asp-action="Reject" asp-controller="Admin" method="post" class="d-inline ms-1">
+                                        <input type="hidden" name="id" value="@leave.Id" />
+                                        <button type="submit" class="btn btn-sm" style="background-color: #f87171; color: white; border-radius: 20px; font-weight: 500;"><i class="bi bi-x-circle me-1"></i> Reject</button>
+                                    </form>
+                                </td>
                             </tr>
                         }
                     } else {
-                        <tr><td colspan="5" class="text-center py-4">No pending approvals.</td></tr>
+                        <tr><td colspan="6" class="text-center py-5 text-muted"><i class="bi bi-emoji-smile fs-3 d-block mb-2"></i> All caught up! No pending approvals.</td></tr>
                     }
                 </tbody>
             </table>
@@ -195,6 +209,109 @@
                     }
                 </tbody>
             </table>
+        </div>
+    </div>
+
+    <!-- Leave Structure (Ported) -->
+    <div class="tab-pane fade" id="structure" role="tabpanel">
+        <div class="admin-table">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Code</th>
+                            <th>Default Days</th>
+                            <th>Max Consecutive</th>
+                            <th>Yearly Limit</th>
+                            <th>Paid</th>
+                            <th>Requires Approval</th>
+                            <th>Carry Forward</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.LeaveTypes.Any())
+                        {
+                            <tr>
+                                <td colspan="10" class="text-center py-4 text-muted">
+                                    <i class="bi bi-inbox" style="font-size:2rem; opacity:0.3"></i>
+                                    <p class="mb-0 mt-2">No leave types configured yet.</p>
+                                </td>
+                            </tr>
+                        }
+                        @foreach (var lt in Model.LeaveTypes)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@lt.Name</td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(lt.Code))
+                                    {
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary fw-bold" style="font-family:monospace">@lt.Code</span>
+                                    }
+                                    else { <span class="text-muted">—</span> }
+                                </td>
+                                <td><span class="fw-bold text-primary">@lt.DefaultDays</span> days</td>
+                                <td>@(lt.MaxConsecutiveDays > 0 ? $"{lt.MaxConsecutiveDays} days" : "No limit")</td>
+                                <td>@(lt.YearlyLimit > 0 ? $"{lt.YearlyLimit} days" : "Unlimited")</td>
+                                <td>
+                                    @if (lt.IsPaid)
+                                    {
+                                        <span class="badge badge-approved" style="border-radius:20px; padding:5px 10px; background: #e6fffa; color: #047481; border: 1px solid #b2f5ea;"><i class="bi bi-check me-1"></i>Yes</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-rejected" style="border-radius:20px; padding:5px 10px; background: #fff5f5; color: #c53030; border: 1px solid #feb2b2;"><i class="bi bi-x me-1"></i>No</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (lt.RequiresApproval)
+                                    {
+                                        <span class="badge badge-pending" style="border-radius:20px; padding:5px 10px; background: #fffaf0; color: #9c4221; border: 1px solid #fbd38d;">Required</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-cancelled" style="border-radius:20px; padding:5px 10px; background: #edf2f7; color: #2d3748; border: 1px solid #e2e8f0;">Auto</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (lt.CarryForward)
+                                    {
+                                        <span class="badge badge-approved" style="border-radius:20px; padding:5px 10px; background: #e6fffa; color: #047481; border: 1px solid #b2f5ea;"><i class="bi bi-arrow-repeat me-1"></i>Yes</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-cancelled" style="border-radius:20px; padding:5px 10px; background: #edf2f7; color: #2d3748; border: 1px solid #e2e8f0;">No</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (lt.IsEnabled)
+                                    {
+                                        <span class="badge badge-approved" style="border-radius:20px; padding:5px 10px; background: #e6fffa; color: #047481; border: 1px solid #b2f5ea;"><i class="bi bi-power me-1"></i>Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-rejected" style="border-radius:20px; padding:5px 10px; background: #fff5f5; color: #c53030; border: 1px solid #feb2b2;">Disabled</span>
+                                    }
+                                </td>
+                                <td>
+                                    <a asp-action="EditLeaveType" asp-route-id="@lt.Id" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                        <i class="bi bi-pencil me-1"></i> Edit Rules
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-4">
+                <div class="alert alert-info py-3 border-0 shadow-sm" style="font-size:0.9rem; border-radius:15px; background: #ebf8ff; color: #2b6cb0;">
+                    <i class="bi bi-info-circle-fill me-2"></i>
+                    <strong>Note:</strong> Leave types represent company policy. You can edit rules but cannot delete them to preserve historical data integrity.
+                    To disable a leave type, uncheck "Enabled" when editing.
+                </div>
+            </div>
         </div>
     </div>
 </div>

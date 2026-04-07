@@ -52,6 +52,7 @@ public class AdminLeaveHistoryViewModel
     public List<AdminLeaveRequestViewModel> PendingLeaves { get; set; } = new();
     public List<DepartmentLeaveStatsViewModel> DepartmentStats { get; set; } = new();
     public List<EmployeeLeaveStatsViewModel> EmployeeStats { get; set; } = new();
+    public List<LeaveType> LeaveTypes { get; set; } = new();
 }
 
 public class DepartmentLeaveStatsViewModel
