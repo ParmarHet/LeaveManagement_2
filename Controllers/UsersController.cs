@@ -179,13 +179,8 @@ public class UsersController : Controller
 
                 // Notify User
                 string subject = "Your Account Has Been Approved!";
-                string body = $@"
-                    <h3>Welcome to the Leave Management System</h3>
-                    <p>Hello {user.FirstName},</p>
-                    <p>Your account has been approved by the administrator.</p>
-                    <p>You can now log in using your registered email and password.</p>
-                ";
-                if(user.Email != null)
+                string body = EmailTemplateHelper.GetUserStatusUpdateTemplate(user.FirstName, "Approved", true);
+                if (user.Email != null)
                 {
                     await _emailService.SendEmailAsync(user.Email, subject, body);
                 }

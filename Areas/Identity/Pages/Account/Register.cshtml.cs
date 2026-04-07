@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using LMS.Models;
+using LMS.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -162,24 +163,23 @@ namespace LMS.Areas.Identity.Pages.Account
                         protocol: Request.Scheme);
 
                     // 1) Send email to the new user
-                    await _emailService.SendEmailAsync(Input.Email, "Registration Received - Awaiting Approval",
-                        $"Hello {Input.FirstName},<br><br>Your registration request has been received. " +
-                        $"Your account is currently in <b>Pending</b> status.<br>" +
-                        $"You will receive an email once the administrator approves your account.<br><br>Thank you.");
+                    string userEmailBody = EmailTemplateHelper.GetBaseTemplate(
+                        "Registration Received",
+                        $"Hello {Input.FirstName},<br><br>Your registration request has been received and is now <b>Pending</b> review. " +
+                        $"You will be notified once the administrator completes your account setup.<br><br>Thank you for your patience."
+                    );
+                    await _emailService.SendEmailAsync(Input.Email, "Registration Received - Awaiting Approval", userEmailBody);
 
                     // 2) Send email to the Admin
+                    string pendingUrl = Url.Action("Pending", "Users", new { area = "" }, Request.Scheme);
                     string adminEmailSubject = "New User Registration - Action Required";
-                    string adminEmailBody = $@"
-                        <h3>New User Registration Request</h3>
-                        <p>A new user has registered and is pending approval.</p>
-                        <ul>
-                            <li><b>Name:</b> {Input.FirstName} {Input.LastName}</li>
-                            <li><b>Email:</b> {Input.Email}</li>
-                            <li><b>Employee Code:</b> {Input.EmployeeCode}</li>
-                            <li><b>Date Joined:</b> {Input.DateJoined.ToString("dd MMM yyyy")}</li>
-                        </ul>
-                        <p>Please log in to the admin dashboard to review and approve/reject this request.</p>
-                    ";
+                    string adminEmailBody = EmailTemplateHelper.GetRegistrationRequestTemplate(
+                        $"{Input.FirstName} {Input.LastName}",
+                        Input.Email,
+                        Input.EmployeeCode,
+                        Input.DateJoined,
+                        pendingUrl
+                    );
                     
                     await _emailService.SendEmailToAdminAsync(adminEmailSubject, adminEmailBody);
 

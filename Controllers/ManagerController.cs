@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using LMS.Models;
 using LMS.Constants;
 using LMS.Data;
+using LMS.Services;
 
 namespace LMS.Controllers;
 
@@ -13,11 +14,13 @@ public class ManagerController : Controller
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly ApplicationDbContext _context;
+    private readonly IEmailService _emailService;
 
-    public ManagerController(UserManager<ApplicationUser> userManager, ApplicationDbContext context)
+    public ManagerController(UserManager<ApplicationUser> userManager, ApplicationDbContext context, IEmailService emailService)
     {
         _userManager = userManager;
         _context = context;
+        _emailService = emailService;
     }
 
     // ─── DASHBOARD ──────────────────────────────────────────────────────────
@@ -229,6 +232,20 @@ public class ManagerController : Controller
         await _context.SaveChangesAsync();
 
         // Notify Employee
+        var employee = await _userManager.FindByIdAsync(leave.RequestingEmployeeId);
+        if (employee != null && !string.IsNullOrEmpty(employee.Email))
+        {
+            var emailBody = EmailTemplateHelper.GetLeaveResponseTemplate(
+                employee.FirstName,
+                "Approved",
+                true,
+                leaveType?.Name ?? "Leave",
+                leave.StartDate,
+                remarks
+            );
+            await _emailService.SendEmailAsync(employee.Email, "Leave Request Approved", emailBody);
+        }
+
         var notification = new Notification
         {
             UserId = leave.RequestingEmployeeId,
@@ -251,7 +268,7 @@ public class ManagerController : Controller
         var manager = await _userManager.GetUserAsync(User);
         if (manager == null) return Challenge();
 
-        var leave = await _context.LeaveRequests.FindAsync(id);
+        var leave = await _context.LeaveRequests.Include(r => r.LeaveType).Include(r => r.RequestingEmployee).FirstOrDefaultAsync(r => r.Id == id);
         if (leave == null) return NotFound();
 
         leave.Approved = false;
@@ -262,6 +279,19 @@ public class ManagerController : Controller
         await _context.SaveChangesAsync();
 
         // Notify Employee
+        if (leave.RequestingEmployee != null && !string.IsNullOrEmpty(leave.RequestingEmployee.Email))
+        {
+            var emailBody = EmailTemplateHelper.GetLeaveResponseTemplate(
+                leave.RequestingEmployee.FirstName,
+                "Rejected",
+                false,
+                leave.LeaveType?.Name ?? "Leave",
+                leave.StartDate,
+                remarks
+            );
+            await _emailService.SendEmailAsync(leave.RequestingEmployee.Email, "Leave Request Update", emailBody);
+        }
+
         var notification = new Notification
         {
             UserId = leave.RequestingEmployeeId,

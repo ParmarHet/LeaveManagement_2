@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using LMS.Models;
 using LMS.Constants;
 using LMS.Data;
+using LMS.Services;
 
 namespace LMS.Controllers;
 
@@ -13,11 +14,13 @@ public class EmployeeController : Controller
 {
     private readonly ApplicationDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IEmailService _emailService;
 
-    public EmployeeController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+    public EmployeeController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IEmailService emailService)
     {
         _context = context;
         _userManager = userManager;
+        _emailService = emailService;
     }
 
     // ─── DASHBOARD ──────────────────────────────────────────
@@ -381,7 +384,10 @@ public class EmployeeController : Controller
         // Notify Manager
         if (!string.IsNullOrEmpty(user.ManagerId))
         {
+            var manager = await _userManager.FindByIdAsync(user.ManagerId);
             var leaveType = await _context.LeaveTypes.FindAsync(model.LeaveTypeId);
+
+            // Create in-app notification
             var notification = new Notification
             {
                 UserId = user.ManagerId,
@@ -391,6 +397,23 @@ public class EmployeeController : Controller
                 IsRead = false
             };
             _context.Notifications.Add(notification);
+
+            // Send Email to Manager
+            if (manager != null && !string.IsNullOrEmpty(manager.Email))
+            {
+                var dashboardUrl = Url.Action("Dashboard", "Manager", new { area = "" }, Request.Scheme);
+                var emailBody = EmailTemplateHelper.GetLeaveRequestTemplate(
+                    $"{user.FirstName} {user.LastName}",
+                    leaveType?.Name ?? "Leave",
+                    model.StartDate,
+                    model.EndDate,
+                    businessDays,
+                    model.Reason,
+                    dashboardUrl
+                );
+                await _emailService.SendEmailAsync(manager.Email, "Action Required: New Leave Request", emailBody);
+            }
+            
             await _context.SaveChangesAsync();
         }
 
