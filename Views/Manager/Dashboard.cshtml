@@ -4,92 +4,121 @@
     Layout = "_ManagerLayout";
 }
 
-<div class="row g-4 mb-4">
-    <div class="col-sm-6 col-xl-3">
-        <div class="stat-card">
-            <div class="stat-icon" style="background:#dc3545"><i class="fa-solid fa-hourglass-half"></i></div>
-            <div><p>Pending Requests</p><h2>@Model.PendingRequests</h2></div>
+<div class="ds-page-header align-items-center">
+    <h1 class="ds-page-title">Team Management<br>Dashboard</h1>
+    
+    <div class="d-flex gap-4">
+        <!-- Team Pending Card -->
+        <div class="ds-stat-card ds-card-amber">
+            <div class="ds-stat-label">Pending Approvals</div>
+            <div class="ds-stat-value">@Model.PendingRequests</div>
+            <div class="ds-stat-icon-floating"><i class="bi bi-check-square-fill"></i></div>
+        </div>
+
+        <!-- Team On Leave Card -->
+        <div class="ds-stat-card ds-card-green">
+            <div class="ds-stat-label">On Leave Today</div>
+            <div class="ds-stat-value">@Model.TeamMembersOnLeaveToday</div>
+            <div class="ds-stat-icon-floating"><i class="bi bi-person-x-fill"></i></div>
+        </div>
+
+        <!-- Total Team Card -->
+        <div class="ds-stat-card ds-card-gray">
+            <div class="ds-stat-label">Total Team Members</div>
+            <div class="ds-stat-value">@Model.TotalTeamMembers</div>
+            <div class="ds-stat-icon-floating"><i class="bi bi-people-fill"></i></div>
         </div>
     </div>
-    <div class="col-sm-6 col-xl-3">
-        <div class="stat-card">
-            <div class="stat-icon" style="background:#fd7e14"><i class="fa-solid fa-umbrella-beach"></i></div>
-            <div><p>On Leave Today</p><h2>@Model.TeamMembersOnLeaveToday</h2></div>
-        </div>
-    </div>
-    <div class="col-sm-6 col-xl-3">
-        <div class="stat-card">
-            <div class="stat-icon" style="background:var(--accent)"><i class="fa-solid fa-users"></i></div>
-            <div><p>Total Team Members</p><h2>@Model.TotalTeamMembers</h2></div>
-        </div>
-    </div>
-    <div class="col-sm-6 col-xl-3">
-        <div class="stat-card">
-            <div class="stat-icon" style="background:#6f42c1"><i class="fa-solid fa-calendar-check"></i></div>
-            <div><p>Upcoming Leaves</p><h2>@Model.UpcomingLeaveCount</h2></div>
-        </div>
+</div>
+
+<div class="ds-filter-bar mt-2">
+    <div class="ds-filter-pill">Filter by Team Member <i class="bi bi-chevron-down ms-1"></i></div>
+    <div class="ds-filter-pill">Select Month <i class="bi bi-chevron-down ms-1"></i></div>
+    
+    <div class="ms-auto d-flex gap-2">
+        <a asp-action="PendingRequests" class="ds-btn-primary">
+            Review All Pending
+        </a>
     </div>
 </div>
 
 <div class="row g-4">
     <div class="col-lg-7">
-        <div class="content-card">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="fw-bold mb-0"><i class="fa-solid fa-hourglass-half me-2 text-warning"></i>Pending Approvals</h6>
-                <a asp-action="PendingRequests" class="btn btn-sm btn-outline-secondary">View All</a>
+        <div class="ds-table-container mt-0">
+            <div class="px-3 py-2 border-bottom d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold mb-0">Pending Leave Approvals</h6>
+                <a asp-action="PendingRequests" class="small text-decoration-none">Review All</a>
             </div>
             @if (!Model.PendingLeaveRequests.Any())
             {
-                <div class="text-center text-muted py-4"><i class="fa-solid fa-check-circle fa-2x text-success mb-2"></i><p class="mb-0">All caught up! No pending requests.</p></div>
+                <div class="text-center text-muted py-5">
+                    <i class="bi bi-check-circle-fill fs-1 d-block mb-2 opacity-10" style="color: #10b981;"></i>
+                    <p class="small mb-0">All clear! No pending team requests.</p>
+                </div>
             }
             else
             {
-                @foreach (var r in Model.PendingLeaveRequests)
-                {
-                    <div class="d-flex justify-content-between align-items-center border-bottom py-3">
-                        <div>
-                            <div class="fw-semibold">@r.RequestingEmployee?.FirstName @r.RequestingEmployee?.LastName</div>
-                            <small class="text-muted">@r.LeaveType?.Name · @r.StartDate.ToString("dd MMM") – @r.EndDate.ToString("dd MMM yyyy")</small>
-                        </div>
-                        <a asp-action="Review" asp-route-id="@r.Id" class="btn btn-sm btn-success">Review</a>
-                    </div>
-                }
+                <table class="ds-table">
+                    <thead>
+                        <tr>
+                            <th>Personnel</th>
+                            <th>Dates</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var r in Model.PendingLeaveRequests)
+                    {
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="ds-avatar-initials" style="background:#eff6ff; color:#2563eb;">@r.RequestingEmployee?.FirstName?[0]@r.RequestingEmployee?.LastName?[0]</div>
+                                    <div class="fw-bold text-dark">@r.RequestingEmployee?.FirstName @r.RequestingEmployee?.LastName</div>
+                                </div>
+                            </td>
+                            <td><span class="text-muted small">@r.StartDate.ToString("dd MMM") – @r.EndDate.ToString("dd MMM")</span></td>
+                            <td class="text-end">
+                                <a asp-action="Review" asp-route-id="@r.Id" class="btn btn-sm btn-outline-primary fw-bold" style="border-radius: 50px;">Review</a>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
             }
         </div>
     </div>
     <div class="col-lg-5">
-        <div class="content-card mb-4">
-            <h6 class="fw-bold mb-3"><i class="fa-solid fa-umbrella-beach me-2 text-danger"></i>On Leave Today</h6>
+        <div class="ds-table-container mt-0 p-4 mb-4">
+            <h6 class="fw-bold mb-4">On Leave Today</h6>
             @if (!Model.TeamOnLeaveToday.Any())
             {
-                <p class="text-muted small">No team members on leave today.</p>
+                <p class="text-muted small text-center py-3">No team members on leave today.</p>
             }
             else
             {
                 @foreach (var emp in Model.TeamOnLeaveToday)
                 {
-                    <div class="d-flex align-items-center gap-2 mb-2">
-                        <div style="width:32px;height:32px;background:#dc3545;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:13px;font-weight:700">
-                            @emp.FirstName?.Substring(0,1)
-                        </div>
-                        <span class="fw-semibold small">@emp.FirstName @emp.LastName</span>
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="ds-avatar-initials ds-dot-cancel">@emp.FirstName?.Substring(0,1)</div>
+                        <span class="fw-semibold text-dark">@emp.FirstName @emp.LastName</span>
                     </div>
                 }
             }
         </div>
-        <div class="content-card">
-            <h6 class="fw-bold mb-3"><i class="fa-solid fa-calendar-check me-2 text-primary"></i>Upcoming Leaves</h6>
+        
+        <div class="ds-table-container mt-0 p-4">
+            <h6 class="fw-bold mb-4">Upcoming Team Leaves</h6>
             @if (!Model.UpcomingLeaves.Any())
             {
-                <p class="text-muted small">No upcoming leaves in the next 2 weeks.</p>
+                <p class="text-muted small text-center py-3">No upcoming leaves in the next 2 weeks.</p>
             }
             else
             {
                 @foreach (var u in Model.UpcomingLeaves)
                 {
-                    <div class="d-flex justify-content-between border-bottom py-2">
-                        <div class="small fw-semibold">@u.RequestingEmployee?.FirstName @u.RequestingEmployee?.LastName</div>
-                        <div class="small text-muted">@u.StartDate.ToString("dd MMM")</div>
+                    <div class="d-flex justify-content-between border-bottom py-3">
+                        <div class="fw-bold">@u.RequestingEmployee?.FirstName @u.RequestingEmployee?.LastName</div>
+                        <div class="small badge bg-light text-muted fw-bold p-2" style="border-radius: 8px;">@u.StartDate.ToString("dd MMM")</div>
                     </div>
                 }
             }

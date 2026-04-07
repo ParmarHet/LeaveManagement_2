@@ -60,4 +60,17 @@ public class NotificationsController : Controller
         await _context.SaveChangesAsync();
         return Redirect(Request.Headers["Referer"].ToString() ?? "/");
     }
+
+    [HttpGet]
+    public async Task<IActionResult> GetUnreadCount()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null) return Json(new { count = 0 });
+
+        var count = await _context.Notifications
+            .Where(n => n.UserId == user.Id && !n.IsRead)
+            .CountAsync();
+
+        return Json(new { count });
+    }
 }

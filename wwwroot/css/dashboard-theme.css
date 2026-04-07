@@ -1,0 +1,605 @@
+/* ═══════════════════════════════════════════════════════════════
+   DASHBOARD THEME — Narrow Dark Rail + Clean Pastel Content
+   Refined to match "Employment Records" reference image accurately
+   ═══════════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
+
+/* ── CSS Custom Properties ── */
+:root {
+    /* Narrow rail by default */
+    --ds-sidebar-w: 72px;
+    --ds-sidebar-bg: #111111;
+    --ds-sidebar-hover: #1f2937;
+    --ds-sidebar-active-bg: #3b82f6; 
+    --ds-sidebar-text: rgba(255, 255, 255, 0.45);
+    --ds-sidebar-text-hover: #ffffff;
+    --ds-sidebar-border: rgba(255, 255, 255, 0.05);
+
+    --ds-topbar-h: 72px;
+    --ds-topbar-bg: #F2FAE9;
+    --ds-topbar-border: #d4e8c4;
+    --ds-topbar-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+
+    --ds-body-bg: #F2FAE9;
+    --ds-content-pad: 40px;
+
+    --ds-card-radius: 20px;
+    --ds-card-border: 1px solid #f3f4f6;
+    
+    /* Reference Colors (Pastels) */
+    --ds-accent: #2563eb; 
+    --ds-accent-soft: #eff6ff;
+    
+    --ds-green-soft: #dcfce7; /* Total Users card color */
+    --ds-green-text: #065f46;
+    
+    --ds-gray-soft: #f3f4f6; /* Active Status card color */
+    --ds-gray-text: #1f2937;
+    
+    --ds-amber-soft: #fef3c7; /* Pending card color */
+    --ds-amber-text: #92400e;
+    
+    --ds-text-primary: #111827;
+    --ds-text-secondary: #4b5563;
+    --ds-text-muted: #9ca3af;
+    --ds-border-light: #f3f4f6;
+
+    /* Green Palette from User */
+    --ds-palette-1: #758467;
+    --ds-palette-2: #819171;
+    --ds-palette-3: #9CAF88;
+    --ds-palette-4: #CBD5C0;
+    --ds-palette-5: #DFE6DA;
+
+    --ds-font: 'Outfit', 'Inter', system-ui, sans-serif;
+}
+
+/* ── Global Reset ── */
+body.dashboard-body {
+    font-family: var(--ds-font);
+    background: var(--ds-body-bg);
+    margin: 0;
+    padding: 0;
+    color: var(--ds-text-primary);
+    -webkit-font-smoothing: antialiased;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+/* ══════════════════════════════════════
+   SIDEBAR (Narrow icon rail)
+   ══════════════════════════════════════ */
+.ds-sidebar {
+    position: fixed;
+    top: 0; left: 0;
+    width: var(--ds-sidebar-w);
+    height: 100vh;
+    background: var(--ds-sidebar-bg);
+    display: flex;
+    flex-direction: column;
+    z-index: 1050;
+    overflow: hidden;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ds-sidebar:hover {
+    width: 260px;
+}
+
+/* ── Logo Area ── */
+.ds-sidebar-logo {
+    padding: 24px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    flex-shrink: 0;
+    margin-bottom: 20px;
+}
+
+.ds-logo-icon {
+    width: 44px; height: 44px;
+    background: #333333;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 800;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.ds-logo-text {
+    display: none;
+    white-space: nowrap;
+    margin-left: 12px;
+}
+
+.ds-sidebar:hover .ds-logo-text {
+    display: block;
+}
+
+.ds-logo-text .brand-name {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.5px;
+}
+
+/* ── Nav Links ── */
+.ds-sidebar-nav {
+    flex: 1;
+    padding: 0 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.ds-sidebar:hover .ds-sidebar-nav {
+    align-items: flex-start;
+}
+
+.ds-nav-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px; height: 48px;
+    margin-bottom: 12px;
+    color: var(--ds-sidebar-text);
+    text-decoration: none !important;
+    border-radius: 14px;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    position: relative;
+}
+
+.ds-sidebar:hover .ds-nav-link {
+    width: 100%;
+    justify-content: flex-start;
+    padding: 0 14px;
+    gap: 14px;
+}
+
+.ds-nav-link span {
+    display: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.ds-sidebar:hover .ds-nav-link span {
+    display: block;
+}
+
+.ds-nav-link i, .ds-nav-link .bi {
+    font-size: 1.2rem;
+}
+
+.ds-nav-link:hover {
+    background: var(--ds-sidebar-hover);
+    color: var(--ds-sidebar-text-hover);
+}
+
+.ds-nav-link.active {
+    background: var(--ds-sidebar-active-bg);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.ds-nav-label {
+    display: none;
+}
+
+/* Sidebar Footer settings icon */
+.ds-sidebar-footer {
+    padding: 10px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding-left: 12px;
+    gap: 0;
+    border-top: 1px solid var(--ds-sidebar-border);
+}
+
+.ds-sidebar-footer form {
+    margin: 0;
+    padding: 0;
+}
+
+.ds-sidebar-footer .ds-nav-link {
+    margin-bottom: 0;
+}
+
+.ds-sidebar:hover .ds-sidebar-footer {
+    align-items: stretch;
+    padding: 20px 15px;
+}
+
+
+/* ══════════════════════════════════════
+   TOPBAR
+   ══════════════════════════════════════ */
+.ds-topbar {
+    margin-left: var(--ds-sidebar-w);
+    height: var(--ds-topbar-h);
+    background: var(--ds-topbar-bg);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0 var(--ds-content-pad);
+    border-bottom: 1px solid var(--ds-topbar-border);
+    transition: margin-left 0.3s;
+}
+
+.ds-profile-trigger {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none !important;
+}
+
+.ds-avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    overflow: hidden;
+}
+
+.ds-profile-name {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--ds-text-primary);
+    text-align: right;
+}
+
+.ds-profile-role {
+    font-size: 0.75rem;
+    color: var(--ds-text-muted);
+    font-weight: 500;
+    text-align: right;
+}
+
+
+/* ══════════════════════════════════════
+   MAIN CONTENT
+   ══════════════════════════════════════ */
+.ds-main {
+    margin-left: var(--ds-sidebar-w);
+    padding: var(--ds-content-pad);
+    min-height: calc(100vh - var(--ds-topbar-h));
+    transition: margin-left 0.3s;
+}
+
+.ds-page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 40px;
+}
+
+.ds-page-title {
+    font-size: 3rem;
+    font-weight: 800;
+    color: #111111;
+    margin: 0;
+    line-height: 1.1;
+    letter-spacing: -1px;
+}
+
+/* Filter bar matches the reference image */
+.ds-filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.ds-filter-pill {
+    padding: 8px 16px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #374151;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.ds-filter-pill:hover {
+    border-color: #d1d5db;
+    background: #f9fafb;
+}
+
+.ds-icon-btn {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    border: 1px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6b7280;
+    background: #fff;
+    cursor: pointer;
+}
+
+.ds-btn-primary {
+    padding: 10px 24px;
+    background: #2563eb;
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.88rem;
+    border-radius: 50px;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none !important;
+}
+
+.ds-btn-primary:hover {
+    background: #1d4ed8;
+    color: #fff;
+}
+
+
+/* ══════════════════════════════════════
+   CARDS (Pastel style)
+   ══════════════════════════════════════ */
+.ds-stat-card {
+    border-radius: 24px;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    height: 140px;
+    min-width: 200px;
+    position: relative;
+    border: none;
+    transition: transform 0.2s;
+}
+
+.ds-stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.ds-stat-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6b7280;
+    margin-bottom: 6px;
+}
+
+.ds-stat-value {
+    font-size: 2.4rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.ds-stat-icon-floating {
+    position: absolute;
+    top: 24px; right: 24px;
+    width: 44px; height: 44px;
+    background: rgba(0, 0, 0, 0.04);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+/* Card variants */
+.ds-card-green { background-color: var(--ds-green-soft); }
+.ds-card-green .ds-stat-value { color: var(--ds-green-text); }
+.ds-card-green .ds-stat-icon-floating { color: var(--ds-green-text); }
+
+.ds-card-gray { background-color: var(--ds-gray-soft); }
+.ds-card-gray .ds-stat-value { color: var(--ds-gray-text); }
+.ds-card-gray .ds-stat-icon-floating { color: var(--ds-gray-text); }
+
+.ds-card-amber { background-color: var(--ds-amber-soft); }
+.ds-card-amber .ds-stat-value { color: var(--ds-amber-text); }
+.ds-card-amber .ds-stat-icon-floating { color: var(--ds-amber-text); }
+
+.ds-card-warm-green { background: #e0f2fe; border-color: #bae6fd; } /* Light Blue */
+.ds-card-warm-green .ds-stat-label, .ds-card-warm-green .ds-stat-value { color: #000; }
+.ds-card-warm-green .ds-stat-icon-floating { color: rgba(0, 0, 0, 0.4); background: rgba(0, 0, 0, 0.05); }
+
+.ds-card-palette-2 { background: #fce7f3; border-color: #fbcfe8; } /* Light Pink */
+.ds-card-palette-2 .ds-stat-label, .ds-card-palette-2 .ds-stat-value { color: #000; }
+.ds-card-palette-2 .ds-stat-icon-floating { color: rgba(0, 0, 0, 0.4); background: rgba(0, 0, 0, 0.05); }
+
+.ds-card-palette-3 { background: #fef9c3; border-color: #fef08a; } /* Light Yellow */
+.ds-card-palette-3 .ds-stat-label, .ds-card-palette-3 .ds-stat-value { color: #000; }
+.ds-card-palette-3 .ds-stat-icon-floating { color: rgba(0, 0, 0, 0.4); background: rgba(0, 0, 0, 0.05); }
+
+
+/* ══════════════════════════════════════
+   TABLES (Premium clean style)
+   ══════════════════════════════════════ */
+.ds-table-container {
+    background: #fff;
+    border: 1px solid #f3f4f6;
+    border-radius: 20px;
+    padding: 10px;
+    margin-top: 30px;
+}
+
+.ds-table {
+    width: 100%;
+}
+
+.ds-table thead th {
+    background: #fff;
+    padding: 20px 16px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--ds-text-muted);
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.ds-table tbody td {
+    padding: 18px 16px;
+    font-size: 0.88rem;
+    color: #4b5563;
+    border-bottom: 1px solid #f9fafb;
+    vertical-align: middle;
+}
+
+.ds-avatar-initials {
+    width: 32px; height: 32px;
+    background: #f3f4f6;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.75rem;
+    color: #3b82f6;
+}
+
+.ds-status-dot {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: #fff;
+}
+
+.ds-dot-success { background: #34d399; }
+.ds-dot-pending { background: #b5e5c8; color: #1e5a3a; }
+.ds-dot-cancel { background: #f87171; }
+
+
+/* ══════════════════════════════════════
+   RESPONSIVE
+   ══════════════════════════════════════ */
+@media (max-width: 991px) {
+    .ds-sidebar { transform: translateX(-100%); }
+    .ds-sidebar.show { transform: translateX(0); width: 260px; }
+    .ds-sidebar.show .ds-logo-text, .ds-sidebar.show .ds-nav-link span { display: block; }
+    .ds-sidebar.show .ds-sidebar-nav { align-items: flex-start; }
+    .ds-sidebar.show .ds-nav-link { width: 100%; justify-content: flex-start; padding: 0 14px; gap: 14px; }
+    
+    .ds-topbar, .ds-main { margin-left: 0 !important; }
+}
+
+
+/* ══════════════════════════════════════
+   EMPLOYEE THEME  (#F2FAE9 background, white sidebar)
+   ══════════════════════════════════════ */
+.employee-theme {
+    background: #F2FAE9 !important;
+}
+
+.employee-theme .ds-topbar {
+    background: #F2FAE9;
+    border-bottom: 1px solid #d4e8c4;
+}
+
+.employee-theme .ds-sidebar {
+    background: #ffffff;
+    border-right: 1px solid #e8f0de;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.04);
+}
+
+.employee-theme .ds-logo-icon {
+    background: #e6f4d7;
+    color: #2d6a1e;
+}
+
+.employee-theme .ds-logo-text .brand-name {
+    color: #1a1a1a;
+}
+
+.employee-theme .ds-nav-link {
+    color: #4b5563;
+}
+
+.employee-theme .ds-nav-link:hover {
+    background: #f0f7e8;
+    color: #1a1a1a;
+}
+
+.employee-theme .ds-nav-link.active {
+    background: #3b82f6;
+    color: #fff;
+}
+
+.employee-theme .ds-sidebar-footer {
+    border-top: 1px solid #e8f0de;
+}
+
+.employee-theme .ds-sidebar-footer .ds-nav-link,
+.employee-theme .ds-sidebar-footer button.ds-nav-link {
+    color: #4b5563;
+}
+
+.employee-theme .ds-sidebar-footer .ds-nav-link:hover,
+.employee-theme .ds-sidebar-footer button.ds-nav-link:hover {
+    background: #f0f7e8;
+    color: #1a1a1a;
+}
+
+
+/* ══════════════════════════════════════
+   ADMIN THEME  (#F8F9FA background, white sidebar)
+   ══════════════════════════════════════ */
+.admin-theme {
+    background: #F2FAE9 !important;
+}
+
+.admin-theme .ds-topbar {
+    background: #F2FAE9;
+    border-bottom: 1px solid #d4e8c4;
+}
+
+.admin-theme .ds-sidebar {
+    background: #ffffff;
+    border-right: 1px solid #e5e7eb;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.04);
+}
+
+.admin-theme .ds-logo-icon {
+    background: #e8ecf1;
+    color: #1e3a5f;
+}
+
+.admin-theme .ds-logo-text .brand-name {
+    color: #1a1a1a;
+}
+
+.admin-theme .ds-nav-link {
+    color: #4b5563;
+}
+
+.admin-theme .ds-nav-link:hover {
+    background: #f1f3f5;
+    color: #1a1a1a;
+}
+
+.admin-theme .ds-nav-link.active {
+    background: #3b82f6;
+    color: #fff;
+}
+
+.admin-theme .ds-sidebar-footer {
+    border-top: 1px solid #e5e7eb;
+}
+
+.admin-theme .ds-sidebar-footer .ds-nav-link,
+.admin-theme .ds-sidebar-footer button.ds-nav-link {
+    color: #4b5563;
+}
+
+.admin-theme .ds-sidebar-footer .ds-nav-link:hover,
+.admin-theme .ds-sidebar-footer button.ds-nav-link:hover {
+    background: #f1f3f5;
+    color: #1a1a1a;
+}

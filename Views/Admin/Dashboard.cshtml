@@ -4,311 +4,110 @@
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<div class="page-header d-flex justify-content-between align-items-end mb-4">
-    <div>
-        <h2 class="fw-bold mb-1"><i class="bi bi-grid-1x2-fill me-2 text-primary"></i>Executive Overview</h2>
-        <p class="text-muted mb-0">Analytics and organizational health for @DateTime.Now.ToString("dddd, dd MMMM yyyy")</p>
-    </div>
-    <div class="d-none d-md-block">
-        <button class="btn btn-white shadow-sm border border-secondary border-opacity-10 rounded-3 px-3 py-2 fw-semibold small">
-            <i class="bi bi-download me-2"></i>Export Report
-        </button>
-    </div>
-</div>
-
-<!-- TOP STATS: PRIMARY INDICATORS -->
-<div class="row g-4 mb-4">
-    <div class="col-xl-3 col-md-6">
-        <div class="premium-card bg-gradient-indigo">
-            <div class="premium-card-body">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <div class="premium-label">Active Force</div>
-                        <div class="premium-value">@Model.TotalEmployees</div>
-                    </div>
-                    <div class="premium-icon-box">
-                        <i class="bi bi-people-fill"></i>
-                    </div>
-                </div>
-                <div class="premium-footer">
-                    <span class="text-white-50 small"><i class="bi bi-arrow-up-right me-1"></i>Organizational Size</span>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-xl-3 col-md-6">
-        <div class="premium-card bg-gradient-blue">
-            <div class="premium-card-body">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <div class="premium-label">Leadership</div>
-                        <div class="premium-value">@Model.TotalManagers</div>
-                    </div>
-                    <div class="premium-icon-box">
-                        <i class="bi bi-person-badge-fill"></i>
-                    </div>
-                </div>
-                <div class="premium-footer">
-                    <span class="text-white-50 small"><i class="bi bi-shield-check me-1"></i>Active Managers</span>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-xl-3 col-md-6">
-        <div class="premium-card bg-gradient-amber">
-            <div class="premium-card-body">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <div class="premium-label">Pending Action</div>
-                        <div class="premium-value">@Model.PendingApprovals</div>
-                    </div>
-                    <div class="premium-icon-box">
-                        <i class="bi bi-hourglass-split"></i>
-                    </div>
-                </div>
-                <div class="premium-footer">
-                    <span class="text-white-50 small"><i class="bi bi-lightning-charge me-1"></i>Awaiting Decision</span>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-xl-3 col-md-6">
-        <div class="premium-card bg-gradient-emerald">
-            <div class="premium-card-body">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <div class="premium-label">Operational</div>
-                        <div class="premium-value">@Model.ActiveLeaveRequests</div>
-                    </div>
-                    <div class="premium-icon-box">
-                        <i class="bi bi-check-circle-fill"></i>
-                    </div>
-                </div>
-                <div class="premium-footer">
-                    <span class="text-white-50 small"><i class="bi bi-calendar-check me-1"></i>Approved Requests</span>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- SECONDARY INDICATORS -->
-<div class="row g-4 mb-5">
-    <div class="col-md-3">
-        <div class="stat-mini-card">
-            <div class="d-flex align-items-center gap-3">
-                <div class="mini-icon bg-pink-light"><i class="bi bi-diagram-3-fill text-pink"></i></div>
-                <div>
-                    <div class="mini-label">Departments</div>
-                    <div class="mini-value text-pink">@Model.TotalDepartments</div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="stat-mini-card">
-            <div class="d-flex align-items-center gap-3">
-                <div class="mini-icon bg-cyan-light"><i class="bi bi-grid-3x3-gap-fill text-cyan"></i></div>
-                <div>
-                    <div class="mini-label">Sub-Units</div>
-                    <div class="mini-value text-cyan">@Model.TotalSubDepartments</div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="stat-mini-card @(Model.EmployeesOnLeaveToday > 0 ? "border-danger-subtle bg-danger-subtle bg-opacity-10" : "")">
-            <div class="d-flex align-items-center gap-3">
-                <div class="mini-icon bg-red-light"><i class="bi bi-person-x-fill text-red"></i></div>
-                <div>
-                    <div class="mini-label">Absent Today</div>
-                    <div class="mini-value text-red">@Model.EmployeesOnLeaveToday</div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="stat-mini-card">
-            <div class="d-flex align-items-center gap-3">
-                <div class="mini-icon bg-green-light"><i class="bi bi-calendar-event-fill text-green"></i></div>
-                <div>
-                    <div class="mini-label">Holidays Soon</div>
-                    <div class="mini-value text-green">@Model.UpcomingHolidays</div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- DETAILED SECTIONS -->
-<div class="row g-4">
-    <div class="col-lg-7">
-        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-            <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
-                <h6 class="mb-0 fw-bold d-flex align-items-center">
-                    <span class="rounded-pill bg-danger bg-opacity-10 p-1 me-2"><i class="bi bi-person-x-fill text-danger mx-1"></i></span>
-                    Absence Tracker
-                </h6>
-                <span class="badge rounded-pill bg-light text-dark border fw-normal">Live Stats</span>
-            </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="bg-light bg-opacity-50 border-top-0">
-                            <tr>
-                                <th class="ps-4 py-3 small text-uppercase text-muted fw-bold border-0">Personnel</th>
-                                <th class="py-3 small text-uppercase text-muted fw-bold border-0">Category</th>
-                                <th class="py-3 small text-uppercase text-muted fw-bold border-0">Release Date</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @if (Model.EmployeesOnLeaveTodayList.Any())
-                            {
-                                @foreach (var leave in Model.EmployeesOnLeaveTodayList)
-                                {
-                                    <tr>
-                                        <td class="ps-4">
-                                            <div class="d-flex align-items-center gap-3">
-                                                <div class="avatar-sm">@leave.RequestingEmployee?.FirstName?[0]@leave.RequestingEmployee?.LastName?[0]</div>
-                                                <div>
-                                                    <div class="fw-bold text-dark mb-0">@leave.RequestingEmployee?.FirstName @leave.RequestingEmployee?.LastName</div>
-                                                    <div class="text-muted small">@leave.RequestingEmployee?.Email</div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td><span class="badge rounded shadow-sm py-2 px-3 bg-primary bg-opacity-10 text-primary">@leave.LeaveType?.Name</span></td>
-                                        <td>
-                                            <div class="d-flex align-items-center text-dark fw-medium">
-                                                <i class="bi bi-calendar-date me-2 text-muted"></i>
-                                                @leave.EndDate.ToString("dd MMM yyyy")
-                                            </div>
-                                        </td>
-                                    </tr>
-                                }
-                            }
-                            else
-                            {
-                                <tr>
-                                    <td colspan="3" class="text-center py-5">
-                                        <div class="py-3">
-                                            <i class="bi bi-emoji-smile text-muted opacity-50 display-4"></i>
-                                            <p class="text-muted mt-3 mb-0">Operational Efficiency 100%. No absences today.</p>
-                                        </div>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-lg-5">
-        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-            <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
-                <h6 class="mb-0 fw-bold d-flex align-items-center">
-                    <span class="rounded-pill bg-success bg-opacity-10 p-1 me-2"><i class="bi bi-calendar2-check-fill text-success mx-1"></i></span>
-                    Upcoming Recess
-                </h6>
-                <a asp-controller="Holidays" asp-action="Manage" class="small text-decoration-none fw-bold">View Full Calendar</a>
-            </div>
-            <div class="card-body p-0">
-                @if (Model.UpcomingHolidayList.Any())
-                {
-                    <div class="list-group list-group-flush">
-                        @foreach (var h in Model.UpcomingHolidayList)
-                        {
-                            var daysLeft = (h.Date - DateTime.Today).Days;
-                            <div class="list-group-item px-4 py-3 border-0 border-bottom-faint">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div class="d-flex align-items-center gap-3">
-                                        <div class="calendar-item-date">
-                                            <div class="month">@h.Date.ToString("MMM")</div>
-                                            <div class="day">@h.Date.ToString("dd")</div>
-                                        </div>
-                                        <div>
-                                            <div class="fw-bold text-dark">@h.Name</div>
-                                            <div class="small text-muted">National Gazetted Holiday</div>
-                                        </div>
-                                    </div>
-                                    <div class="text-end">
-                                        <span class="badge rounded-pill @(daysLeft <= 3 ? "bg-warning text-dark" : "bg-light text-muted border") px-3">
-                                            @(daysLeft == 0 ? "Today" : daysLeft == 1 ? "Tomorrow" : $"In {daysLeft} days")
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        }
-                    </div>
-                }
-                else
-                {
-                    <div class="text-center py-5">
-                        <i class="bi bi-calendar2-x text-muted opacity-50 display-4"></i>
-                        <p class="text-muted mt-3">No holidays in the next 30 days.</p>
-                    </div>
-                }
-            </div>
-        </div>
-    </div>
-</div>
-
-<style>
-    /* Premium UI Components */
-    .premium-card {
-        border-radius: 1.25rem;
-        padding: 1.75rem;
-        color: white;
-        transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s;
-        box-shadow: 0 10px 20px rgba(0,0,0,0.05);
-        border: none;
-        position: relative;
-        overflow: hidden;
-    }
-    .premium-card:hover { 
-        transform: translateY(-8px); 
-        box-shadow: 0 15px 30px rgba(0,0,0,0.12);
-    }
-    .premium-card::before {
-        content: ""; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-        pointer-events: none;
-    }
+<div class="ds-page-header">
+    <h1 class="ds-page-title">Executive<br>Overview</h1>
     
-    .bg-gradient-indigo { background: linear-gradient(135deg, #6366f1, #4f46e5); }
-    .bg-gradient-blue { background: linear-gradient(135deg, #3b82f6, #2563eb); }
-    .bg-gradient-amber { background: linear-gradient(135deg, #f59e0b, #d97706); }
-    .bg-gradient-emerald { background: linear-gradient(135deg, #10b981, #059669); }
+    <div class="d-flex gap-4">
+        <!-- Success/Total Card -->
+        <div class="ds-stat-card ds-card-green" style="background-color: #e0f2fe; color: #0284c7;">
+            <div class="ds-stat-label" style="color: #0284c7;">Total Employees</div>
+            <div class="ds-stat-value" style="color: #0369a1;">@Model.TotalEmployees</div>
+            <div class="ds-stat-icon-floating"><i class="bi bi-people-fill"></i></div>
+        </div>
 
-    .premium-label { font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.85; margin-bottom: 0.5rem; }
-    .premium-value { font-size: 2.5rem; font-weight: 800; line-height: 1; }
-    .premium-icon-box { background: rgba(255,255,255,0.2); width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
-    .premium-footer { margin-top: 1.5rem; }
+        <!-- Info/Active Card -->
+        <div class="ds-stat-card ds-card-gray" style="background-color: #fce7f3; color: #db2777;">
+            <div class="ds-stat-label" style="color: #db2777;">Active Managers</div>
+            <div class="ds-stat-value" style="color: #be185d;">@Model.TotalManagers</div>
+            <div class="ds-stat-icon-floating"><i class="bi bi-person-badge-fill"></i></div>
+        </div>
 
-    /* Mini stats */
-    .stat-mini-card { background: white; border-radius: 1rem; padding: 1.25rem; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 4px 10px rgba(0,0,0,0.02); transition: all 0.2s; }
-    .stat-mini-card:hover { transform: scale(1.02); background: #fdfdfd; }
-    .mini-icon { width: 44px; height: 44px; border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
-    .mini-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.5px; }
-    .mini-value { font-size: 1.25rem; font-weight: 800; line-height: 1.2; }
+        <!-- Warning/Pending Card -->
+        <div class="ds-stat-card ds-card-amber" style="background-color: #fef9c3; color: #ca8a04;">
+            <div class="ds-stat-label" style="color: #ca8a04;">Pending Action</div>
+            <div class="ds-stat-value" style="color: #a16207;">@Model.PendingApprovals</div>
+            <div class="ds-stat-icon-floating"><i class="bi bi-hourglass-split"></i></div>
+        </div>
+    </div>
+</div>
 
-    .bg-pink-light { background: #fdf2f8; } .text-pink { color: #db2777; }
-    .bg-cyan-light { background: #ecfeff; } .text-cyan { color: #0891b2; }
-    .bg-red-light { background: #fef2f2; } .text-red { color: #dc2626; }
-    .bg-green-light { background: #f0fdf4; } .text-green { color: #16a34a; }
+<div class="ds-filter-bar d-flex gap-2 align-items-center mb-3 p-3 bg-white shadow-sm" style="border-radius: 12px;">
+    <select id="filterDepartment" class="form-select w-auto rounded-pill border-light text-muted small" onchange="filterDashboardTable()">
+        <option value="All">All Departments</option>
+        @if (ViewBag.Departments != null)
+        {
+            @foreach(var dept in (List<LMS.Models.Department>)ViewBag.Departments)
+            {
+                <option value="@dept.Name">@dept.Name</option>
+            }
+        }
+    </select>
+    
+    <div class="ms-auto d-flex gap-2">
+        <a asp-controller="Users" asp-action="Index" class="ds-btn-primary">
+            Manage Personnel
+        </a>
+    </div>
+</div>
 
-    /* Custom UI */
-    .avatar-sm { width: 40px; height: 40px; background: #6366f1; color: white; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; }
-    .border-bottom-faint { border-bottom: 0.5px solid #f1f5f9; }
+<div class="ds-table-container">
+    <table class="ds-table">
+        <thead>
+            <tr>
+                <th style="width: 250px;">Employee</th>
+                <th>Leave Type</th>
+                <th>Department</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.EmployeesOnLeaveTodayList.Any())
+            {
+                @foreach (var leave in Model.EmployeesOnLeaveTodayList)
+                {
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="ds-avatar-initials">@leave.RequestingEmployee?.FirstName?[0]@leave.RequestingEmployee?.LastName?[0]</div>
+                                <div class="fw-bold text-dark">@leave.RequestingEmployee?.FirstName @leave.RequestingEmployee?.LastName</div>
+                            </div>
+                        </td>
+                        <td><span class="text-secondary">@leave.LeaveType?.Name</span></td>
+                        <td><span class="badge bg-light text-dark border">@leave.RequestingEmployee?.Department?.Name</span></td>
+                        <td>
+                            <div class="ds-status-dot ds-dot-success">Active</div>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="4" class="text-center py-5">
+                        <div class="text-muted small">No absences reported today. 100% Operational.</div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
 
-    .calendar-item-date { 
-        background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; 
-        text-align: center; width: 46px; height: 46px; overflow: hidden;
+<script>
+    function filterDashboardTable() {
+        const deptFilter = document.getElementById('filterDepartment').value.toLowerCase();
+        const rows = document.querySelectorAll('.ds-table tbody tr');
+
+        rows.forEach(row => {
+            if (row.cells.length < 4) return; 
+            const dept = row.cells[2].textContent.toLowerCase();
+
+            const matchesDept = deptFilter === 'all' || dept.includes(deptFilter);
+
+            if (matchesDept) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
     }
-    .calendar-item-date .month { background: #6366f1; color: white; font-size: 0.55rem; font-weight: 800; text-transform: uppercase; padding: 2px 0; }
-    .calendar-item-date .day { font-size: 1.1rem; font-weight: 800; color: #1e293b; padding-top: 1px; }
-
-    .btn-white { background: white; color: #1e293b; transition: all 0.2s; }
-    .btn-white:hover { background: #f8fafc; color: #6366f1; border-color: #6366f1 !important; transform: translateY(-1px); }
-</style>
+</script>

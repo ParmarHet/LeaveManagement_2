@@ -1,3 +1,16 @@
+# Build folders
+bin/
+obj/
+
+# Visual Studio
+.vs/
+.vscode/
+
+# User files
+*.user
+*.suo
+
+# Logs
 appsettings.Development.json
 bin/
 obj/

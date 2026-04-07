@@ -2,74 +2,564 @@
 @{
     ViewData["Title"] = "Leave Balance";
     Layout = User.IsInRole("Admin") ? "_AdminLayout" : (User.IsInRole("Manager") ? "_ManagerLayout" : "_EmployeeLayout");
+
+    // Filter valid leave types:
+    // 1. Compulsory: Paid Leave, Floating Holiday, Sick Leave
+    // 2. Others: Only if used > 0
+    var compulsoryNames = new[] { "Paid Leave", "Floating Holiday", "Sick Leave", "Paid" };
+    var balances = Model.Where(b => 
+        compulsoryNames.Any(cn => b.LeaveTypeName.Contains(cn, StringComparison.OrdinalIgnoreCase)) || 
+        b.Used > 0
+    ).ToList();
+
+    var totalAllocated = balances.Where(b => b.Allocated > 0).Sum(b => b.Allocated);
+    var totalUsed      = balances.Where(b => b.Allocated > 0).Sum(b => b.Used);
+    var totalRemaining = balances.Where(b => b.Allocated > 0).Sum(b => b.Remaining);
 }
 
-<div class="row g-4 mb-4">
-@foreach (var b in Model)
-{
-    var isUnlimited = b.LeaveTypeCode == "LW" || b.LeaveTypeCode == "ML" || b.LeaveTypeCode == "BL";
-    var pct = isUnlimited ? 0 : (b.Allocated > 0 ? (b.Used * 100 / b.Allocated) : 0);
-    var color = pct >= 80 ? "#dc3545" : pct >= 50 ? "#fd7e14" : "#28a745";
-    if (isUnlimited) color = "#6c757d";
+@section Styles {
+<style>
 
-    <div class="col-sm-6 col-xl-4">
-        <div class="content-card text-center">
-            <h6 class="text-muted fw-semibold mb-3">@b.LeaveTypeName</h6>
-            <div style="position:relative;display:inline-block;width:120px;height:120px;margin-bottom:16px">
-                <svg viewBox="0 0 36 36" style="width:120px;height:120px;transform:rotate(-90deg)">
-                    <circle cx="18" cy="18" r="15.9" fill="none" stroke="#f0f0f0" stroke-width="3"/>
-                    @if (!isUnlimited) {
-                        <circle cx="18" cy="18" r="15.9" fill="none" stroke="@color" stroke-width="3"
-                            stroke-dasharray="@pct 100" stroke-linecap="round"/>
-                    }
-                </svg>
-                <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center">
-                    @if (isUnlimited)
+    :root {
+        --lms-navy:       #0f1e35;
+        --lms-blue:       #1d4ed8;
+        --lms-blue-mid:   #3b82f6;
+        --lms-surface:    #f8fafc;
+        --lms-surface-2:  #f1f5f9;
+        --lms-border:     #e2e8f0;
+        --lms-muted:      #64748b;
+        --lms-text:       #0f172a;
+        --lms-white:      #ffffff;
+
+        /* Status palette */
+        --s-green-bar: var(--ds-palette-3);
+ 
+        --s-amber-bg:  var(--ds-palette-5);
+        --s-amber-mid: var(--ds-palette-4);
+        --s-amber-txt: var(--ds-palette-1);
+        --s-amber-bar: var(--ds-palette-3);
+ 
+        --s-red-bg:    #fff1f2;
+        --s-red-mid:   #fecdd3;
+        --s-red-txt:   #be123c;
+        --s-red-bar:   #f43f5e;
+ 
+        --s-open-bg:   #eff6ff;
+        --s-open-txt:  #1d4ed8;
+        --s-open-bar:  #93c5fd;
+    }
+
+    /* ── Base typography ───────────────────────────── */
+    .lb-page {
+        font-family: 'DM Sans', sans-serif;
+        color: var(--lms-text);
+    }
+
+    /* ── Page header ───────────────────────────────── */
+    .lb-page-header {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        margin-bottom: 28px;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .lb-page-title {
+        font-family: 'Sora', sans-serif;
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--lms-navy);
+        letter-spacing: -0.5px;
+        margin: 0;
+        line-height: 1.2;
+    }
+
+    .lb-page-subtitle {
+        font-size: 13px;
+        color: var(--lms-muted);
+        margin: 4px 0 0;
+        font-weight: 400;
+    }
+
+    .lb-fy-badge {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--lms-blue);
+        background: #dbeafe;
+        border: 1px solid #bfdbfe;
+        padding: 5px 14px;
+        border-radius: 20px;
+        letter-spacing: 0.2px;
+        white-space: nowrap;
+    }
+
+    /* ── Summary strip ─────────────────────────────── */
+    .lb-summary {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        margin-bottom: 32px;
+    }
+
+    .lb-summary-card {
+        background: var(--lms-white);
+        border: 1px solid var(--lms-border);
+        border-radius: 14px;
+        padding: 20px 22px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        transition: box-shadow 0.2s;
+    }
+
+    .lb-summary-card:hover {
+        box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    }
+
+    .lb-summary-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 11px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 17px;
+        flex-shrink: 0;
+    }
+
+    .si-blue   { background: #dbeafe; }
+    .si-amber  { background: #fef3c7; }
+    .si-green  { background: #dcfce7; }
+
+    .lb-summary-label {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--lms-muted);
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+        margin-bottom: 3px;
+    }
+
+    .lb-summary-num {
+        font-family: 'Sora', sans-serif;
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--lms-navy);
+        line-height: 1;
+    }
+
+    .lb-summary-unit {
+        font-size: 12px;
+        color: var(--lms-muted);
+        font-weight: 400;
+        margin-left: 3px;
+    }
+
+    /* ── Section label ─────────────────────────────── */
+    .lb-section-label {
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        color: var(--lms-muted);
+        margin-bottom: 16px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--lms-border);
+    }
+
+    /* ── Leave cards grid ──────────────────────────── */
+    .lb-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+    }
+
+    /* Card entry animation */
+    @@keyframes lb-fadein {
+        from { opacity: 0; transform: translateY(10px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .lb-card {
+        background: var(--lms-white);
+        border: 1px solid var(--lms-border);
+        border-radius: 16px;
+        overflow: hidden;
+        position: relative;
+        transition: box-shadow 0.25s, transform 0.2s, border-color 0.2s;
+        animation: lb-fadein 0.35s ease both;
+    }
+
+    .lb-card:hover {
+        box-shadow: 0 8px 28px rgba(15,30,53,0.09);
+        transform: translateY(-2px);
+        border-color: #cbd5e1;
+    }
+
+    /* Left accent bar — colored by status */
+    .lb-card-accent {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        border-radius: 0;
+    }
+
+    .lb-card-inner {
+        padding: 22px 22px 20px 26px;
+    }
+
+    /* Card top row */
+    .lb-card-top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .lb-card-name {
+        font-family: 'Sora', sans-serif;
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--lms-navy);
+        line-height: 1.3;
+        margin: 0;
+    }
+
+    .lb-status-chip {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 11px;
+        font-weight: 600;
+        padding: 3px 10px;
+        border-radius: 20px;
+        white-space: nowrap;
+        letter-spacing: 0.2px;
+        flex-shrink: 0;
+    }
+
+    /* Card numbers */
+    .lb-numbers {
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
+        margin-bottom: 14px;
+    }
+
+    .lb-big-num {
+        font-family: 'Sora', sans-serif;
+        font-size: 36px;
+        font-weight: 700;
+        line-height: 1;
+        color: var(--lms-navy);
+    }
+
+    .lb-num-of {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 14px;
+        color: var(--lms-muted);
+        font-weight: 400;
+    }
+
+    /* Progress bar */
+    .lb-bar-wrap {
+        height: 6px;
+        background: var(--lms-surface-2);
+        border-radius: 99px;
+        overflow: hidden;
+        margin-bottom: 12px;
+    }
+
+    .lb-bar-fill {
+        height: 100%;
+        border-radius: 99px;
+        transition: width 0.6s ease;
+    }
+
+    /* Card footer */
+    .lb-card-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-top: 12px;
+        border-top: 1px solid var(--lms-surface-2);
+    }
+
+    .lb-foot-stat {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        color: var(--lms-muted);
+    }
+
+    .lb-foot-stat i {
+        font-size: 11px;
+    }
+
+    .lb-foot-stat strong {
+        font-weight: 600;
+        color: #374151;
+    }
+
+    .lb-foot-pct {
+        font-family: 'Sora', sans-serif;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--lms-muted);
+    }
+
+    /* Open / unlimited card variant */
+    .lb-open-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        color: var(--lms-muted);
+        background: var(--lms-surface);
+        border: 1px solid var(--lms-border);
+        border-radius: 8px;
+        padding: 9px 12px;
+        margin-top: 4px;
+    }
+
+    .lb-open-info i { color: var(--lms-blue-mid); }
+
+    /* Open card used count */
+    .lb-open-used {
+        margin-bottom: 12px;
+    }
+
+    /* ── Empty state ────────────────────────────────── */
+    .lb-empty {
+        background: var(--lms-surface);
+        border: 1px dashed var(--lms-border);
+        border-radius: 16px;
+        padding: 60px 24px;
+        text-align: center;
+    }
+
+    .lb-empty-icon {
+        width: 56px;
+        height: 56px;
+        background: var(--lms-white);
+        border: 1px solid var(--lms-border);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        margin: 0 auto 18px;
+        color: var(--lms-muted);
+    }
+
+    .lb-empty-title {
+        font-family: 'Sora', sans-serif;
+        font-size: 17px;
+        font-weight: 600;
+        color: var(--lms-navy);
+        margin-bottom: 6px;
+    }
+
+    .lb-empty-sub {
+        font-size: 13px;
+        color: var(--lms-muted);
+        margin: 0;
+    }
+
+    /* ── Responsive ─────────────────────────────────── */
+    @@media (max-width: 768px) {
+        .lb-summary { grid-template-columns: 1fr; }
+        .lb-grid    { grid-template-columns: 1fr; }
+        .lb-page-header { align-items: flex-start; flex-direction: column; }
+    }
+
+    @@media (max-width: 480px) {
+        .lb-big-num { font-size: 28px; }
+    }
+</style>
+}
+
+<div class="lb-page">
+
+    <!-- ── Page Header ──────────────────────────────── -->
+    <div class="lb-page-header">
+        <div>
+            <h3 class="lb-page-title">Leave Balances</h3>
+            <p class="lb-page-subtitle">Your current allocation status across all leave types</p>
+        </div>
+        <span class="lb-fy-badge">
+            <i class="fa-regular fa-calendar me-1"></i> FY @DateTime.Now.Year–@(DateTime.Now.Year + 1)
+        </span>
+    </div>
+
+    <!-- ── Summary Strip (only if there are standard leaves) ── -->
+    @if (balances.Any(b => b.Allocated > 0))
+    {
+        <div class="lb-summary">
+            <div class="lb-summary-card">
+                <div class="lb-summary-icon si-blue">
+                    <i class="fa-solid fa-layer-group" style="color:#1d4ed8"></i>
+                </div>
+                <div>
+                    <div class="lb-summary-label">Total Allocated</div>
+                    <div>
+                        <span class="lb-summary-num">@totalAllocated</span>
+                        <span class="lb-summary-unit">days</span>
+                    </div>
+                </div>
+            </div>
+            <div class="lb-summary-card">
+                <div class="lb-summary-icon si-amber">
+                    <i class="fa-solid fa-calendar-minus" style="color:#b45309"></i>
+                </div>
+                <div>
+                    <div class="lb-summary-label">Total Used</div>
+                    <div>
+                        <span class="lb-summary-num">@totalUsed</span>
+                        <span class="lb-summary-unit">days</span>
+                    </div>
+                </div>
+            </div>
+            <div class="lb-summary-card">
+                <div class="lb-summary-icon si-green">
+                    <i class="fa-solid fa-circle-check" style="color:#15803d"></i>
+                </div>
+                <div>
+                    <div class="lb-summary-label">Remaining</div>
+                    <div>
+                        <span class="lb-summary-num">@totalRemaining</span>
+                        <span class="lb-summary-unit">days</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- ── Cards Grid ───────────────────────────────── -->
+    @if (balances.Any())
+    {
+        <div class="lb-section-label">All Leave Types</div>
+        <div class="lb-grid">
+        @{ int cardIndex = 0; }
+        @foreach (var b in balances)
+        {
+            var total     = b.Allocated;
+            var used      = b.Used;
+            var remaining = b.Remaining;
+            var isStandard = total > 0;
+
+            var usedPct      = isStandard && total > 0 ? (int)Math.Round((double)used / total * 100) : 0;
+            var remainingPct = isStandard ? 100 - usedPct : 100;
+
+            // Color tokens
+            string accentColor, barColor, chipBg, chipColor;
+
+            if (!isStandard) {
+                accentColor = "var(--s-open-bar)";
+                barColor    = "var(--s-open-bar)";
+                chipBg      = "var(--s-open-bg)";
+                chipColor   = "var(--s-open-txt)";
+            } else if (remainingPct > 50) {
+                accentColor = "var(--s-green-bar)";
+                barColor    = "var(--s-green-bar)";
+                chipBg      = "var(--s-green-bg)";
+                chipColor   = "var(--s-green-txt)";
+            } else if (remainingPct > 20) {
+                accentColor = "var(--s-amber-bar)";
+                barColor    = "var(--s-amber-bar)";
+                chipBg      = "var(--s-amber-bg)";
+                chipColor   = "var(--s-amber-txt)";
+            } else {
+                accentColor = "var(--s-red-bar)";
+                barColor    = "var(--s-red-bar)";
+                chipBg      = "var(--s-red-bg)";
+                chipColor   = "var(--s-red-txt)";
+            }
+
+            var delay = cardIndex * 60;
+            cardIndex++;
+            <div class="lb-card" style="animation-delay: @(delay)ms">
+                <div class="lb-card-accent" style="background: @accentColor;"></div>
+                <div class="lb-card-inner">
+
+                    <!-- Top row: name + chip -->
+                    <div class="lb-card-top">
+                        <p class="lb-card-name">@b.LeaveTypeName</p>
+                        <span class="lb-status-chip" style="background:@chipBg; color:@chipColor;">
+                            @if (!isStandard)
+                            {
+                                <i class="fa-solid fa-infinity me-1" style="font-size:10px;"></i>@:Open
+                            }
+                            else if (remainingPct > 50)
+                            {
+                                <i class="fa-solid fa-seedling me-1" style="font-size:10px;"></i>@:Good
+                            }
+                            else if (remainingPct > 20)
+                            {
+                                <i class="fa-solid fa-triangle-exclamation me-1" style="font-size:10px;"></i>@:Low
+                            }
+                            else
+                            {
+                                <i class="fa-solid fa-circle-exclamation me-1" style="font-size:10px;"></i>@:Critical
+                            }
+                        </span>
+                    </div>
+
+                    @if (isStandard)
                     {
-                        <div style="font-size:22px;font-weight:700;color:@color">@b.Used</div>
-                        <div style="font-size:10px;color:#aaa">used</div>
+                        <!-- Big number -->
+                        <div class="lb-numbers">
+                            <span class="lb-big-num">@remaining</span>
+                            <span class="lb-num-of">of @total days left</span>
+                        </div>
+
+                        <!-- Progress bar -->
+                        <div class="lb-bar-wrap">
+                            <div class="lb-bar-fill" style="width: @usedPct%; background: @barColor;"></div>
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="lb-card-footer">
+                            <div class="lb-foot-stat">
+                                <i class="fa-solid fa-calendar-xmark" style="color:@barColor;"></i>
+                                Used: <strong>@used day@(used == 1 ? "" : "s")</strong>
+                            </div>
+                            <span class="lb-foot-pct">@usedPct% used</span>
+                        </div>
                     }
                     else
                     {
-                        <div style="font-size:22px;font-weight:700;color:@color">@b.Remaining</div>
-                        <div style="font-size:10px;color:#aaa">remaining</div>
+                        <!-- Open leave: days used -->
+                        <div class="lb-numbers lb-open-used">
+                            <span class="lb-big-num">@used</span>
+                            <span class="lb-num-of">day@(used == 1 ? "" : "s") taken</span>
+                        </div>
+
+                        <div class="lb-open-info">
+                            <i class="fa-solid fa-circle-info"></i>
+                            No fixed allocation — subject to manager approval
+                        </div>
                     }
+
                 </div>
             </div>
-            
-            @if (isUnlimited)
-            {
-                <div class="mt-3 text-muted small">
-                    Special leave type. <br/> See policies for eligibility.
-                </div>
-            }
-            else
-            {
-                <div class="row text-center g-0 border-top pt-3 mt-1">
-                    <div class="col-4">
-                        <div class="fw-bold">@b.Allocated</div>
-                        <div class="text-muted small">Allocated</div>
-                    </div>
-                    <div class="col-4 border-start border-end">
-                        <div class="fw-bold text-danger">@b.Used</div>
-                        <div class="text-muted small">Used</div>
-                    </div>
-                    <div class="col-4">
-                        <div class="fw-bold text-success">@b.Remaining</div>
-                        <div class="text-muted small">Available</div>
-                    </div>
-                </div>
-            }
+        }
         </div>
-    </div>
-}
-</div>
+    }
+    else
+    {
+        <!-- Empty state -->
+        <div class="lb-empty">
+            <div class="lb-empty-icon">
+                <i class="fa-regular fa-calendar-xmark"></i>
+            </div>
+            <p class="lb-empty-title">No Leave Allocations Found</p>
+            <p class="lb-empty-sub">Your leave balances haven't been configured yet. Please contact HR or your administrator.</p>
+        </div>
+    }
 
-@if (!Model.Any())
-{
-    <div class="content-card text-center py-5">
-        <i class="fa-solid fa-scale-balanced fa-3x text-muted mb-3"></i>
-        <h5>No Leave Allocations</h5>
-        <p class="text-muted">Your leave balances have not been set up yet. Please contact your HR Admin.</p>
-    </div>
-}
+</div>

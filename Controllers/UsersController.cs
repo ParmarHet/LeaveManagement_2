@@ -198,6 +198,54 @@ public class UsersController : Controller
         return View(model);
     }
 
+    // GET: Users/DownloadReport/5
+    public async Task<IActionResult> DownloadReport(string id)
+    {
+        if (id == null) return NotFound();
+
+        var user = await _userManager.FindByIdAsync(id);
+        if (user == null) return NotFound();
+
+        var today = DateTime.Today;
+        var firstDayOfMonth = new DateTime(today.Year, today.Month, 1);
+        var lastDayOfMonth = firstDayOfMonth.AddMonths(1).AddDays(-1);
+        if (lastDayOfMonth > today) lastDayOfMonth = today;
+
+        int totalDaysInMonthSoFar = (lastDayOfMonth - firstDayOfMonth).Days + 1;
+        
+        var leaves = await _context.LeaveRequests
+            .Where(r => r.RequestingEmployeeId == id && r.Approved == true && !r.Cancelled &&
+                        r.StartDate <= lastDayOfMonth && r.EndDate >= firstDayOfMonth)
+            .ToListAsync();
+
+        int leaveTaken = 0;
+        foreach (var leave in leaves)
+        {
+            var start = leave.StartDate < firstDayOfMonth ? firstDayOfMonth : leave.StartDate;
+            var end = leave.EndDate > lastDayOfMonth ? lastDayOfMonth : leave.EndDate;
+            leaveTaken += (int)(end - start).Days + 1;
+        }
+
+        int weekOffs = 0;
+        for (var date = firstDayOfMonth; date <= lastDayOfMonth; date = date.AddDays(1))
+        {
+            if (date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday)
+            {
+                weekOffs++;
+            }
+        }
+
+        int daysPresent = totalDaysInMonthSoFar - leaveTaken - weekOffs;
+        if (daysPresent < 0) daysPresent = 0;
+
+        var csv = new System.Text.StringBuilder();
+        csv.AppendLine("Employee Name,Month,Leave Taken,Days Present,Week Offs");
+        csv.AppendLine($"{user.FirstName} {user.LastName},{today:MMM yyyy},{leaveTaken},{daysPresent},{weekOffs}");
+
+        byte[] buffer = System.Text.Encoding.UTF8.GetBytes(csv.ToString());
+        return File(buffer, "text/csv", $"Report_{user.FirstName}_{user.LastName}_{today:MMM_yyyy}.csv");
+    }
+
     private async Task PopulateReviewViewBags()
     {
         ViewBag.Roles = await _roleManager.Roles.Select(r => r.Name).ToListAsync();

@@ -557,6 +557,32 @@ public class EmployeeController : Controller
         return View(model);
     }
 
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateProfile(UpdateProfileViewModel model)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null) return Challenge();
+
+        user.DateOfBirth = model.DateOfBirth;
+        user.Gender = model.Gender ?? string.Empty;
+        user.Address = model.Address ?? string.Empty;
+        user.Phone = model.Phone ?? string.Empty;
+        user.Shift = model.Shift ?? string.Empty;
+
+        var result = await _userManager.UpdateAsync(user);
+        if (result.Succeeded)
+        {
+            TempData["Success"] = "Profile updated successfully!";
+        }
+        else
+        {
+            TempData["Error"] = "Failed to update profile. " + string.Join(", ", result.Errors.Select(e => e.Description));
+        }
+
+        return RedirectToAction(nameof(Profile));
+    }
+
     // ─── HELPERS ────────────────────────────────────────────
     private async Task<List<LeaveBalanceViewModel>> GetLeaveBalancesAsync(ApplicationUser user, List<LeaveRequest> allApprovedLeaves)
     {
