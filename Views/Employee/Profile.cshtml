@@ -6,34 +6,46 @@
 }
 
 <div class="ds-page-header align-items-center mb-4">
-    <h1 class="ds-page-title">Personal<br>Profile</h1>
+    <h1 class="ds-page-title">Personal Profile</h1>
 </div>
 
 <div class="row g-4">
     <div class="col-lg-4">
-        <div class="content-card text-center">
-            <div style="width:90px;height:90px;background:var(--ds-palette-3);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:32px;font-weight:700;color:white">
+        <div class="card shadow-sm rounded-4 p-4 text-center">
+            <div class="mx-auto mb-3" style="width:96px;height:96px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--ds-accent);color:#fff;font-size:32px;font-weight:700;">
                 @initials
             </div>
-            <p class="text-muted mb-1">@Model.Email</p>
-            <span class="badge" style="background:var(--ds-palette-2)">@Model.Shift Shift</span>
+            <h5 class="mb-0">@Model.FirstName @Model.LastName</h5>
+            <p class="text-muted small mb-2">@Model.Email</p>
+            <div class="d-flex justify-content-center gap-2 mb-3">
+                <span class="badge rounded-pill" style="background:var(--ds-palette-5);color:var(--ds-palette-1);">@Model.Shift</span>
+                <span class="badge rounded-pill" style="background:#eef2ff;color:#1e3a8a;">@Model.Gender</span>
+            </div>
 
-            <hr class="my-3">
             <div class="text-start">
-                <div class="d-flex justify-content-between py-2 border-bottom">
-                    <span class="text-muted small">Status</span>
-                    <span class="badge badge-approved" style="color: black !important;">@Model.Status</span>
-                </div>
+
                 <div class="d-flex justify-content-between py-2 border-bottom">
                     <span class="text-muted small">Date Joined</span>
-                    <span class="small fw-semibold">@Model.DateJoined.ToLocalTime().ToString("dd MMM yyyy")</span>
+                    <span class="small fw-semibold">@Model.DateJoined.ToString("dd MMM yyyy")</span>
                 </div>
                 <div class="d-flex justify-content-between py-2">
                     <span class="text-muted small">Employee Code</span>
                     <span class="small fw-semibold">@(string.IsNullOrEmpty(Model.EmployeeCode) ? "N/A" : Model.EmployeeCode)</span>
                 </div>
             </div>
+
+            <div class="mt-4 d-grid gap-2">
+                <div class="d-flex justify-content-center gap-2">
+                    <button id="editProfileBtn" type="button" class="btn btn-outline-secondary btn-sm flex-grow-1">Edit Profile</button>
+                    <button id="saveProfileBtn" type="button" class="btn btn-primary btn-sm flex-grow-1" style="display:none;">Save</button>
+                    <button id="cancelEditBtn" type="button" class="btn btn-outline-secondary btn-sm flex-grow-1" style="display:none;">Cancel</button>
+                </div>
+                <button type="button" class="btn btn-light btn-sm text-primary fw-semibold" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                    <i class="fa-solid fa-key me-1"></i> Change Password
+                </button>
+            </div>
         </div>
+    </div>
 
     <div class="col-lg-8">
         @if (TempData["Success"] != null)
@@ -51,101 +63,208 @@
             </div>
         }
 
-        <div class="content-card mb-4">
-            <h6 class="fw-bold mb-3">Edit Profile Information</h6>
-            <form asp-action="UpdateProfile" method="post">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label class="form-label text-muted small mb-1">Email Address (Read-only)</label>
-                        <input type="email" class="form-control bg-light" value="@Model.Email" readonly />
+        <div class="card shadow-sm rounded-4 p-4 mb-4">
+            <h6 class="fw-bold mb-3">Contact & Personal</h6>
+            <form id="profileEditForm">
+                @Html.AntiForgeryToken()
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="text-muted small">Phone</div>
+                        <div class="fw-semibold view-mode" id="phoneView">@(string.IsNullOrEmpty(Model.Phone) ? "Not Provided" : Model.Phone)</div>
+                        <input class="form-control edit-mode" id="phoneInput" name="Phone" value="@Model.Phone" style="display:none;" />
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label text-muted small mb-1">Phone Number</label>
-                        <input type="text" name="Phone" class="form-control" value="@Model.Phone" placeholder="Enter phone number" />
+                    <div class="col-md-6 mb-3">
+                        <div class="text-muted small">Date of Birth</div>
+                        <div class="fw-semibold view-mode" id="dobView">@(Model.DateOfBirth?.ToString("dd MMM yyyy") ?? "Not Provided")</div>
+                        <input type="date" class="form-control edit-mode" id="dobInput" name="DateOfBirth" value="@(Model.DateOfBirth?.ToString("yyyy-MM-dd"))" style="display:none;" />
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label text-muted small mb-1">Date of Birth</label>
-                        <input type="date" name="DateOfBirth" class="form-control" value="@(Model.DateOfBirth?.ToString("yyyy-MM-dd"))" />
+                    <div class="col-12 mb-3">
+                        <div class="text-muted small">Address</div>
+                        <div class="fw-semibold view-mode" id="addressView">@(string.IsNullOrEmpty(Model.Address) ? "Not Provided" : Model.Address)</div>
+                        <textarea class="form-control edit-mode" id="addressInput" name="Address" style="display:none;">@Model.Address</textarea>
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label text-muted small mb-1">Gender</label>
-                        <select name="Gender" class="form-select">
+                    <div class="col-md-6 mb-3">
+                        <div class="text-muted small">Gender</div>
+                        <div class="fw-semibold view-mode" id="genderView">@(string.IsNullOrEmpty(Model.Gender) ? "Not Provided" : Model.Gender)</div>
+                        <select class="form-select edit-mode" id="genderInput" name="Gender" style="display:none;">
                             <option value="">Select Gender</option>
                             @if(Model.Gender == "Male") { <option value="Male" selected>Male</option> } else { <option value="Male">Male</option> }
                             @if(Model.Gender == "Female") { <option value="Female" selected>Female</option> } else { <option value="Female">Female</option> }
                             @if(Model.Gender == "Other") { <option value="Other" selected>Other</option> } else { <option value="Other">Other</option> }
                         </select>
                     </div>
-                    <div class="col-12">
-                        <label class="form-label text-muted small mb-1">Address</label>
-                        <textarea name="Address" class="form-control" rows="2" placeholder="Enter full address">@Model.Address</textarea>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label text-muted small mb-1">Shift Preference</label>
-                        <select name="Shift" class="form-select">
+                    <div class="col-md-6 mb-3">
+                        <div class="text-muted small">Shift Preference</div>
+                        <div class="fw-semibold view-mode" id="shiftView">@(string.IsNullOrEmpty(Model.Shift) ? "Not Provided" : Model.Shift)</div>
+                        <select class="form-select edit-mode" id="shiftInput" name="Shift" style="display:none;">
                             <option value="">Select Shift</option>
                             @if(Model.Shift == "Day") { <option value="Day" selected>Day</option> } else { <option value="Day">Day</option> }
                             @if(Model.Shift == "Night") { <option value="Night" selected>Night</option> } else { <option value="Night">Night</option> }
                             @if(Model.Shift == "Rotational") { <option value="Rotational" selected>Rotational</option> } else { <option value="Rotational">Rotational</option> }
                         </select>
                     </div>
-                    
-                    <div class="col-12 mt-4 text-end">
-                        <button type="submit" class="btn btn-primary px-4"><i class="bi bi-save me-2"></i> Update Profile</button>
-                    </div>
                 </div>
             </form>
         </div>
 
-        <div class="content-card">
+        <div class="card shadow-sm rounded-4 p-4">
             <h6 class="fw-bold mb-3">Organizational Details</h6>
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <label class="text-muted small">Department</label>
-                    <p class="fw-semibold mb-0">@(Model.Department?.Name ?? "Not Assigned")</p>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <div class="text-muted small">Department</div>
+                    <div class="fw-semibold">@(Model.Department?.Name ?? Model.DepartmentName ?? "Not Assigned")</div>
                 </div>
-                <div class="col-md-6">
-                    <label class="text-muted small">Reporting Manager</label>
-                    <p class="fw-semibold mb-0 text-primary">
-                        @if (Model.Manager != null)
-                        {
-                            <i class="fa-solid fa-user-tie me-1"></i> @($"{Model.Manager.FirstName} {Model.Manager.LastName}")
-                        }
-                        else { <span class="text-muted">Not Assigned</span> }
-                    </p>
+                <div class="col-md-6 mb-3">
+                    <div class="text-muted small">Reporting Manager</div>
+                    <div class="fw-semibold text-primary">@(Model.Manager != null ? $"{Model.Manager.FirstName} {Model.Manager.LastName}" : (Model.ManagerName ?? "Not Assigned"))</div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<style>
-    .bg-soft-primary {
-        background-color: rgba(79, 172, 254, 0.1);
-    }
-    .uppercase {
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    .input-group-text {
-        border-radius: 8px 0 0 8px !important;
-    }
-    .form-control, .form-select {
-        border-radius: 0 8px 8px 0 !important;
-        padding-top: 10px;
-        padding-bottom: 10px;
-    }
-    .btn-primary {
-        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        border: none;
-        border-radius: 8px;
-    }
-    .btn-primary:hover {
-        background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
-        transform: translateY(-1px);
-    }
-</style>
+<!-- Change Password Modal -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h6 class="modal-title fw-bold" id="changePasswordModalLabel">Change Your Password</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="changePasswordForm">
+                    @Html.AntiForgeryToken()
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Current Password</label>
+                        <input type="password" name="OldPassword" class="form-control" required placeholder="••••••••">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">New Password</label>
+                        <input type="password" name="NewPassword" class="form-control" required placeholder="Min 6 characters">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Confirm New Password</label>
+                        <input type="password" name="ConfirmPassword" class="form-control" required placeholder="Repeat new password">
+                    </div>
+                    <div id="passwordError" class="alert alert-danger py-2 small" style="display:none;"></div>
+                </form>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light btn-sm fw-semibold" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="submitPasswordBtn" class="btn btn-primary btn-sm fw-semibold px-4">Update Password</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        $(function(){
+            function enterEdit() {
+                $('.view-mode').hide();
+                $('.edit-mode').show();
+                $('#editProfileBtn').hide();
+                $('#saveProfileBtn').show();
+                $('#cancelEditBtn').show();
+            }
+            function exitEdit() {
+                $('.edit-mode').hide();
+                $('.view-mode').show();
+                $('#editProfileBtn').show();
+                $('#saveProfileBtn').hide();
+                $('#cancelEditBtn').hide();
+            }
+
+            $('#editProfileBtn').on('click', function(){ enterEdit(); });
+            $('#cancelEditBtn').on('click', function(){
+                // reset inputs to original values
+                $('#phoneInput').val($('#phoneView').text().trim() === 'Not Provided' ? '' : $('#phoneView').text().trim());
+                var dobText = $('#dobView').text().trim();
+                if (dobText === 'Not Provided') $('#dobInput').val(''); else {
+                    // parse dd MMM yyyy to yyyy-MM-dd
+                    var d = new Date(dobText);
+                    if (!isNaN(d)) {
+                        var mm = (d.getMonth()+1).toString().padStart(2,'0');
+                        var dd = d.getDate().toString().padStart(2,'0');
+                        $('#dobInput').val(d.getFullYear() + '-' + mm + '-' + dd);
+                    }
+                }
+                $('#addressInput').val($('#addressView').text().trim() === 'Not Provided' ? '' : $('#addressView').text().trim());
+                $('#genderInput').val($('#genderView').text().trim() === 'Not Provided' ? '' : $('#genderView').text().trim());
+                $('#shiftInput').val($('#shiftView').text().trim() === 'Not Provided' ? '' : $('#shiftView').text().trim());
+                exitEdit();
+            });
+
+            $('#saveProfileBtn').on('click', function(){
+                var $form = $('#profileEditForm');
+                var token = $form.find('input[name="__RequestVerificationToken"]').val();
+                var data = {
+                    DateOfBirth: $('#dobInput').val(),
+                    Gender: $('#genderInput').val(),
+                    Address: $('#addressInput').val(),
+                    Phone: $('#phoneInput').val(),
+                    Shift: $('#shiftInput').val()
+                };
+                $.ajax({
+                    url: '@Url.Action("UpdateProfile","Employee")',
+                    method: 'POST',
+                    headers: { 'RequestVerificationToken': token, 'X-Requested-With': 'XMLHttpRequest' },
+                    data: data,
+                    success: function(resp){
+                        // On success, update view fields
+                        $('#phoneView').text(data.Phone || 'Not Provided');
+                        $('#dobView').text(data.DateOfBirth ? new Date(data.DateOfBirth).toLocaleDateString(undefined, { year:'numeric', month:'short', day:'numeric' }) : 'Not Provided');
+                        $('#addressView').text(data.Address || 'Not Provided');
+                        $('#genderView').text(data.Gender || 'Not Provided');
+                        $('#shiftView').text(data.Shift || 'Not Provided');
+                        // show success alert
+                        var alertHtml = '<div class="alert alert-success alert-dismissible fade show" role="alert">Profile updated successfully.<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>';
+                        $form.closest('.container, .card').prev().remove(); // try to remove duplicates
+                        $('.ds-page-header').after(alertHtml);
+                        exitEdit();
+                    },
+                    error: function(xhr){
+                        var msg = 'Failed to update profile.';
+                        if (xhr && xhr.responseText) msg += ' ' + xhr.responseText;
+                        var alertHtml = '<div class="alert alert-danger alert-dismissible fade show" role="alert">' + msg + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>';
+                        $('.ds-page-header').after(alertHtml);
+                    }
+                });
+            });
+
+            // Password Change Logic
+            $('#submitPasswordBtn').on('click', function(){
+                var $form = $('#changePasswordForm');
+                var $error = $('#passwordError');
+                var $btn = $(this);
+                
+                $error.hide();
+                $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Updating...');
+
+                $.ajax({
+                    url: '@Url.Action("ChangePassword","Employee")',
+                    method: 'POST',
+                    data: $form.serialize(),
+                    success: function(resp){
+                        if(resp.success){
+                            var alertHtml = '<div class="alert alert-success alert-dismissible fade show" role="alert">' + resp.message + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>';
+                            $('.ds-page-header').after(alertHtml);
+                            $('#changePasswordModal').modal('hide');
+                            $form[0].reset();
+                        } else {
+                            $error.text(resp.error).show();
+                        }
+                    },
+                    error: function(){
+                        $error.text('An unexpected error occurred.').show();
+                    },
+                    complete: function(){
+                        $btn.prop('disabled', false).text('Update Password');
+                    }
+                });
+            });
+        });
+    </script>
 }

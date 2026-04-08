@@ -16,49 +16,49 @@
 </head>
 <body class="dashboard-body admin-theme">
 
-<!-- SIDEBAR OVERLAY (mobile) -->
+<!-- SIDEBAR OVERLAY -->
 <div class="ds-sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
-<!-- SIDEBAR (Narrow Rail) -->
+<!-- SIDEBAR -->
 <aside class="ds-sidebar" id="mainSidebar">
     <div class="ds-sidebar-logo">
         <div class="ds-logo-icon">LP</div>
         <div class="ds-logo-text">
-            <div class="brand-name">LEAVE PRO Admin</div>
+            <div class="brand-name">LeavePro Admin</div>
         </div>
     </div>
 
     <nav class="ds-sidebar-nav">
-        <a class="ds-nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Dashboard" && ViewContext.RouteData.Values["controller"]?.ToString() == "Admin" ? "active" : "")"
+        <a class="ds-nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Dashboard" ? "active" : "")"
            asp-controller="Admin" asp-action="Dashboard" title="Dashboard">
             <i class="bi bi-grid-fill"></i>
             <span>Dashboard</span>
         </a>
-        
         <a class="ds-nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "LeaveHistory" ? "active" : "")"
            asp-controller="Admin" asp-action="LeaveHistory" title="Leave History">
             <i class="bi bi-clock-history"></i>
             <span>Leave History</span>
         </a>
-
+        <a class="ds-nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "LeaveStructure" ? "active" : "")"
+           asp-controller="Admin" asp-action="LeaveStructure" title="Leave Structure">
+            <i class="bi bi-journal-text"></i>
+            <span>Leave Structure</span>
+        </a>
         <a class="ds-nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Departments" ? "active" : "")"
            asp-controller="Departments" asp-action="Index" title="Departments">
             <i class="bi bi-diagram-3-fill"></i>
             <span>Departments</span>
         </a>
-
         <a class="ds-nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "HolidayCalendar" ? "active" : "")"
            asp-controller="Admin" asp-action="HolidayCalendar" title="Holidays">
             <i class="bi bi-calendar-event"></i>
             <span>Holidays</span>
         </a>
-
         <a class="ds-nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Users" ? "active" : "")"
            asp-controller="Users" asp-action="Index" title="Users">
             <i class="bi bi-people-fill"></i>
             <span>Users</span>
         </a>
-
         <a class="ds-nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Pending" ? "active" : "")"
            asp-controller="Users" asp-action="Pending" title="Pending">
             <i class="bi bi-person-check-fill"></i>
@@ -79,25 +79,31 @@
 
 <!-- TOPBAR -->
 <div class="ds-topbar">
-    <div class="d-flex align-items-center w-100 justify-content-end gap-3">
-        <!-- Date Display -->
-        <div class="text-muted small fw-semibold d-none d-md-flex align-items-center me-2">
-            <i class="bi bi-calendar3 me-2"></i> @DateTime.Now.ToString("dddd, dd MMM yyyy")
-        </div>
+    <div class="d-flex align-items-center w-100 gap-3">
+        <button class="btn btn-link p-0 text-dark fs-4" onclick="toggleSidebar()" title="Toggle Menu">
+            <i class="bi bi-list"></i>
+        </button>
 
-        <!-- Notification Bell -->
-        <a asp-controller="Notifications" asp-action="Index" class="position-relative text-dark text-decoration-none" title="Notifications">
-            <i class="bi bi-bell-fill fs-5"></i>
-            <span id="notification-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65em; display: none;">
-                0
-            </span>
-        </a>
+        <div class="ms-auto d-flex align-items-center gap-3">
+            <div class="text-muted small fw-semibold d-none d-md-flex align-items-center">
+                <i class="bi bi-calendar3 me-2"></i> @DateTime.Now.ToString("dd MMM yyyy")
+            </div>
 
-        <!-- Profile Element -->
-        <div class="text-end ms-3">
-            @{ var u = await UserManager.GetUserAsync(User); }
-            <div class="ds-profile-name" style="font-weight: 600;">@(u != null ? $"{u.FirstName} {u.LastName}" : User.Identity?.Name)</div>
-            <div class="ds-profile-role" style="font-size: 0.8rem; color: #6c757d;">Admin</div>
+            <a asp-controller="Notifications" asp-action="Index" class="position-relative text-dark text-decoration-none mx-2" title="Notifications">
+                <i class="bi bi-bell-fill fs-5"></i>
+                <span id="notification-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65em; display: none;">0</span>
+            </a>
+
+            <div class="ds-profile-trigger">
+                <div class="text-end d-none d-sm-block">
+                    @{ var adminU = await UserManager.GetUserAsync(User); }
+                    <div class="ds-profile-name" style="font-weight: 600;">@(adminU != null ? $"{adminU.FirstName} {adminU.LastName}" : User.Identity?.Name)</div>
+                    <div class="ds-profile-role" style="font-size: 0.8rem; color: #6c757d;">Admin</div>
+                </div>
+                <div class="ds-avatar shadow-sm border ms-2">
+                    <img src="https://ui-avatars.com/api/?name=@(adminU?.FirstName ?? "A")&background=1e3a5f&color=fff" alt="User">
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -113,11 +119,20 @@
 <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     function toggleSidebar() {
-        $('#mainSidebar').toggleClass('show');
-        $('#sidebarOverlay').toggleClass('show');
+        const sidebar = $('#mainSidebar');
+        const main = $('.ds-main');
+        const topbar = $('.ds-topbar');
+        
+        sidebar.toggleClass('sidebar-closed');
+        main.toggleClass('content-full');
+        topbar.toggleClass('content-full');
+        
+        if ($(window).width() < 992) {
+            sidebar.toggleClass('show');
+            $('#sidebarOverlay').toggleClass('show');
+        }
     }
 
-    // Fetch notifications dynamically
     $(document).ready(function() {
         $.get('/Notifications/GetUnreadCount', function(data) {
             if (data && data.count > 0) {

@@ -2,51 +2,70 @@
 @{
     ViewData["Title"] = "Add Holiday";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var departments = ViewBag.Departments as List<LMS.Models.Department> ?? new List<LMS.Models.Department>();
 }
 
-<div class="page-header">
-    <h2><i class="bi bi-plus-circle me-2" style="color:#6366f1"></i>Add Holiday</h2>
-    <p>Add a new company holiday to the calendar</p>
+<div class="ds-page-header">
+    <div>
+        <h1 class="ds-page-title" style="font-size:2rem;">Add New<br>Holiday</h1>
+    </div>
+    <a asp-action="HolidayCalendar" class="btn btn-outline-secondary rounded-pill px-4"><i class="bi bi-arrow-left me-1"></i> Back</a>
 </div>
 
 <div class="row justify-content-center">
     <div class="col-lg-6">
-        <div class="card border-0 shadow-sm rounded-3">
-            <div class="card-body p-4">
-                <form asp-action="AddHoliday" method="post">
-                    @Html.AntiForgeryToken()
-                    <div asp-validation-summary="All" class="alert alert-danger py-2" style="display:none"></div>
+        <div class="ds-table-container mt-0 p-4">
+            <form asp-action="AddHoliday" method="post">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="All" class="alert alert-danger py-2 small" style="display:none; border-radius:12px;"></div>
 
-                    <div class="mb-3">
-                        <label asp-for="Name" class="form-label fw-semibold">Holiday Name <span class="text-danger">*</span></label>
-                        <input asp-for="Name" class="form-control" placeholder="e.g. Independence Day" required />
-                        <span asp-validation-for="Name" class="text-danger small"></span>
-                    </div>
+                <div class="mb-3">
+                    <label asp-for="Name" class="form-label fw-semibold small">Holiday Name <span class="text-danger">*</span></label>
+                    <input asp-for="Name" class="form-control" placeholder="e.g. Independence Day" required style="border-radius:10px;" />
+                    <span asp-validation-for="Name" class="text-danger small"></span>
+                </div>
 
-                    <div class="mb-3">
-                        <label asp-for="Date" class="form-label fw-semibold">Date <span class="text-danger">*</span></label>
-                        <input asp-for="Date" type="date" class="form-control" required />
-                        <span asp-validation-for="Date" class="text-danger small"></span>
-                    </div>
+                <div class="mb-3">
+                    <label asp-for="Date" class="form-label fw-semibold small">Date <span class="text-danger">*</span></label>
+                    <input asp-for="Date" type="date" class="form-control" required style="border-radius:10px;" />
+                    <span asp-validation-for="Date" class="text-danger small"></span>
+                </div>
 
-                    <div class="mb-4">
-                        <div class="form-check">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold small">Assign to Department <span class="text-muted fw-normal">(blank = all departments)</span></label>
+                    <select asp-for="DepartmentId" class="form-select" style="border-radius:10px;">
+                        <option value="0">🌍 All Departments (Global)</option>
+                        @foreach (var dept in departments)
+                        {
+                            <option value="@dept.Id">🏢 @dept.Name</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <div class="form-check p-3 border rounded-3">
                             <input asp-for="IsRecurringYearly" class="form-check-input" type="checkbox" checked />
-                            <label asp-for="IsRecurringYearly" class="form-check-label fw-semibold">
-                                Recurring Yearly
-                                <span class="text-muted fw-normal" style="font-size:0.82rem">(e.g. national holidays that repeat every year)</span>
+                            <label asp-for="IsRecurringYearly" class="form-check-label small">
+                                <i class="bi bi-arrow-repeat me-1 text-success"></i> Recurring Yearly
                             </label>
                         </div>
                     </div>
-
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn" style="background:#6366f1; color:#fff;">
-                            <i class="bi bi-check-circle me-1"></i> Add Holiday
-                        </button>
-                        <a asp-action="HolidayCalendar" class="btn btn-outline-secondary">Cancel</a>
+                    <div class="col-6">
+                        <div class="form-check p-3 border rounded-3">
+                            <input asp-for="IsFloating" class="form-check-input" type="checkbox" />
+                            <label asp-for="IsFloating" class="form-check-label small">
+                                <i class="bi bi-star me-1 text-warning"></i> Floating Holiday
+                            </label>
+                        </div>
                     </div>
-                </form>
-            </div>
+                </div>
+
+                <div class="d-flex gap-2 mt-4">
+                    <button type="submit" class="ds-btn-primary"><i class="bi bi-check-circle me-1"></i> Add Holiday</button>
+                    <a asp-action="HolidayCalendar" class="btn btn-light rounded-pill px-4">Cancel</a>
+                </div>
+            </form>
         </div>
     </div>
 </div>

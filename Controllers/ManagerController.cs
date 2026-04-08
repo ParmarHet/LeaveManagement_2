@@ -388,26 +388,47 @@ public class ManagerController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> CreditCO(string employeeId, DateTime dateWorked, string reason)
+    public async Task<IActionResult> CreditCO(List<string> employeeIds, DateTime dateWorked, string reason)
     {
         var manager = await _userManager.GetUserAsync(User);
         if (manager == null) return Challenge();
 
-        var employee = await _context.Users.FirstOrDefaultAsync(u => u.Id == employeeId && u.ManagerId == manager.Id);
-        if(employee != null)
+        if (employeeIds == null || !employeeIds.Any())
         {
-            var co = new CompensatoryOff {
-                EmployeeId = employeeId,
-                DateEarned = dateWorked,
-                ExpiryDate = dateWorked.AddMonths(1),
-                IsUsed = false,
-                Reason = reason,
-                ApprovedById = manager.Id
-            };
-            _context.CompensatoryOffs.Add(co);
-            await _context.SaveChangesAsync();
-            TempData["Success"] = "Compensatory Off credited successfully.";
+            TempData["Error"] = "Please select at least one team member.";
+            return RedirectToAction(nameof(CreditCO));
         }
+
+        int count = 0;
+        foreach (var employeeId in employeeIds)
+        {
+            var employeeExists = await _context.Users.AnyAsync(u => u.Id == employeeId && u.ManagerId == manager.Id);
+            if (employeeExists)
+            {
+                var co = new CompensatoryOff
+                {
+                    EmployeeId = employeeId,
+                    DateEarned = dateWorked,
+                    ExpiryDate = dateWorked.AddMonths(1),
+                    IsUsed = false,
+                    Reason = reason,
+                    ApprovedById = manager.Id
+                };
+                _context.CompensatoryOffs.Add(co);
+                count++;
+            }
+        }
+
+        if (count > 0)
+        {
+            await _context.SaveChangesAsync();
+            TempData["Success"] = $"Compensatory Off credited to {count} team member(s).";
+        }
+        else
+        {
+            TempData["Error"] = "Could not credit CO. Verification failed for selected members.";
+        }
+
         return RedirectToAction(nameof(MyTeam));
     }
 
@@ -492,6 +513,12 @@ public class ManagerController : Controller
     public IActionResult ApplyLeave()
     {
         return RedirectToAction("Apply", "Employee");
+    }
+
+    // ─── HOLIDAYS ────────────────────────────────────────────────────────────
+    public IActionResult Holidays()
+    {
+        return View();
     }
 
     // ─── REPORTS ────────────────────────────────────────────────────────────

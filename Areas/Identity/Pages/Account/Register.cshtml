@@ -7,14 +7,14 @@
 
 <div class="auth-container auth-register-container">
     <div class="auth-header">
-        <h1>Join LMS</h1>
+        <h1>Join LeavePro</h1>
         <p>Create your employee account to get started</p>
     </div>
 
     <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
         <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
         
-        <h5 class="mb-3 fw-bold text-primary">Account Security</h5>
+        <h5 class="mb-3 fw-bold auth-accent">Account Security</h5>
         <div class="row">
             <div class="col-md-12">
                 <div class="form-floating mb-3">
@@ -39,7 +39,7 @@
             </div>
         </div>
 
-        <h5 class="mt-2 mb-3 fw-bold text-primary">Personal Information</h5>
+        <h5 class="mt-2 mb-3 fw-bold auth-accent">Personal Information</h5>
         <div class="row">
             <div class="col-md-6">
                 <div class="form-floating mb-3">

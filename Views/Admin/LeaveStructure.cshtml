@@ -53,45 +53,45 @@
                         <td>
                             @if (lt.IsPaid)
                             {
-                                <span class="badge badge-approved" style="border-radius:20px; padding:5px 10px"><i class="bi bi-check me-1"></i>Yes</span>
+                                <span class="badge badge-approved" style="border-radius:20px; padding:5px 10px; background: #e6fffa; color: #047481; border: 1px solid #b2f5ea;"><i class="bi bi-check me-1"></i>Yes</span>
                             }
                             else
                             {
-                                <span class="badge badge-rejected" style="border-radius:20px; padding:5px 10px"><i class="bi bi-x me-1"></i>No</span>
+                                <span class="badge badge-rejected" style="border-radius:20px; padding:5px 10px; background: #fff5f5; color: #c53030; border: 1px solid #feb2b2;"><i class="bi bi-x me-1"></i>No</span>
                             }
                         </td>
                         <td>
                             @if (lt.RequiresApproval)
                             {
-                                <span class="badge badge-pending" style="border-radius:20px; padding:5px 10px">Required</span>
+                                <span class="badge badge-pending" style="border-radius:20px; padding:5px 10px; background: #fffaf0; color: #9c4221; border: 1px solid #fbd38d;">Required</span>
                             }
                             else
                             {
-                                <span class="badge badge-cancelled" style="border-radius:20px; padding:5px 10px">Auto</span>
+                                <span class="badge badge-cancelled" style="border-radius:20px; padding:5px 10px; background: #edf2f7; color: #2d3748; border: 1px solid #e2e8f0;">Auto</span>
                             }
                         </td>
                         <td>
                             @if (lt.CarryForward)
                             {
-                                <span class="badge badge-approved" style="border-radius:20px; padding:5px 10px"><i class="bi bi-arrow-repeat me-1"></i>Yes</span>
+                                <span class="badge badge-approved" style="border-radius:20px; padding:5px 10px; background: #e6fffa; color: #047481; border: 1px solid #b2f5ea;"><i class="bi bi-arrow-repeat me-1"></i>Yes</span>
                             }
                             else
                             {
-                                <span class="badge badge-cancelled" style="border-radius:20px; padding:5px 10px">No</span>
+                                <span class="badge badge-cancelled" style="border-radius:20px; padding:5px 10px; background: #edf2f7; color: #2d3748; border: 1px solid #e2e8f0;">No</span>
                             }
                         </td>
                         <td>
                             @if (lt.IsEnabled)
                             {
-                                <span class="badge badge-approved" style="border-radius:20px; padding:5px 10px"><i class="bi bi-power me-1"></i>Active</span>
+                                <span class="badge badge-approved" style="border-radius:20px; padding:5px 10px; background: #e6fffa; color: #047481; border: 1px solid #b2f5ea;"><i class="bi bi-power me-1"></i>Active</span>
                             }
                             else
                             {
-                                <span class="badge badge-rejected" style="border-radius:20px; padding:5px 10px">Disabled</span>
+                                <span class="badge badge-rejected" style="border-radius:20px; padding:5px 10px; background: #fff5f5; color: #c53030; border: 1px solid #feb2b2;">Disabled</span>
                             }
                         </td>
                         <td>
-                            <a asp-action="EditLeaveType" asp-route-id="@lt.Id" class="btn btn-sm btn-outline-primary">
+                            <a asp-action="EditLeaveType" asp-route-id="@lt.Id" class="btn btn-sm btn-outline-primary rounded-pill px-3">
                                 <i class="bi bi-pencil me-1"></i> Edit Rules
                             </a>
                         </td>

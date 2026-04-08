@@ -68,3 +68,5 @@ public class UpdateProfileViewModel
     [StringLength(50)]
     public string Shift { get; set; } = string.Empty;
 }
+
+

@@ -80,9 +80,12 @@
                                     </li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li>
-                                        <a class="dropdown-item py-2 text-danger" href="#">
-                                            <i class="bi bi-person-x me-2"></i> Deactivate Account
-                                        </a>
+                                        <form asp-action="Delete" method="post" asp-route-id="@item.Id" class="m-0">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="dropdown-item py-2 text-danger" onclick="return confirm('Are you sure you want to permanently delete this account?');">
+                                                <i class="bi bi-person-x me-2"></i> Delete Account
+                                            </button>
+                                        </form>
                                     </li>
                                 </ul>
                             </div>

@@ -1,0 +1,167 @@
+@{
+    ViewData["Title"] = "Holiday & Team Calendar";
+    Layout = "_ManagerLayout";
+}
+
+<div class="ds-page-header align-items-center">
+    <h1 class="ds-page-title">Holiday &<br>Team Calendar</h1>
+</div>
+
+<div class="row g-4">
+    <!-- CALENDAR -->
+    <div class="col-lg-8">
+        <div class="ds-table-container mt-0 p-0 overflow-hidden">
+            <div id="mgrCalendar" style="padding:20px;"></div>
+        </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="col-lg-4">
+        <!-- Upcoming Holidays -->
+        <div class="ds-table-container mt-0 p-4 mb-4">
+            <h6 class="fw-bold mb-3"><i class="bi bi-calendar-event me-2" style="color:#2563eb;"></i>Upcoming Holidays</h6>
+            <div id="upcomingHolidaySidebar">
+                <div class="text-center py-3">
+                    <div class="spinner-border spinner-border-sm text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Team On Leave Today -->
+        <div class="ds-table-container mt-0 p-4 mb-4">
+            <h6 class="fw-bold mb-3"><i class="bi bi-people me-2" style="color:#10b981;"></i>Team Leave Today</h6>
+            <div id="teamLeaveSidebar">
+                <div class="text-center py-3">
+                    <div class="spinner-border spinner-border-sm text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="ds-table-container mt-0 p-4">
+            <h6 class="fw-bold mb-3"><i class="bi bi-palette me-2 text-primary"></i>Calendar Legend</h6>
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <div style="width:14px;height:14px;border-radius:4px;background:#2563eb;"></div>
+                <span class="small">Public Holiday</span>
+            </div>
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <div style="width:14px;height:14px;border-radius:4px;background:#f59e0b;"></div>
+                <span class="small">Floating Holiday</span>
+            </div>
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <div style="width:14px;height:14px;border-radius:4px;background:#10b981;"></div>
+                <span class="small">Approved Leave (Team)</span>
+            </div>
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <div style="width:14px;height:14px;border-radius:4px;background:#8b5cf6;"></div>
+                <span class="small">Your Approved Leave</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var cal = new FullCalendar.Calendar(document.getElementById('mgrCalendar'), {
+                initialView: 'dayGridMonth',
+                headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,dayGridWeek,listMonth' },
+                height: 550,
+                events: function(info, ok, fail) {
+                    fetch(`/Holidays/GetCalendarData?month=${info.start.getMonth()+1}&year=${info.start.getFullYear()}`)
+                        .then(r => r.json())
+                        .then(data => {
+                            ok(data);
+                            updateSidebars(data);
+                        })
+                        .catch(fail);
+                },
+                eventContent: function(arg) {
+                    let el = document.createElement('div');
+                    el.classList.add('fc-event-title-container');
+                    let icon = '';
+                    let title = arg.event.title;
+                    if (title.includes('Floating')) icon = '⭐ ';
+                    else if (arg.event.backgroundColor === '#2563eb') icon = '🏛 ';
+                    else if (arg.event.backgroundColor === '#10b981') icon = '🧳 ';
+                    el.innerHTML = `<div class="fc-event-title fw-semibold text-truncate small ms-1">${icon}${title}</div>`;
+                    return { domNodes: [el] };
+                },
+                dayCellDidMount: function(info) {
+                    if (info.date.getDay() === 0 || info.date.getDay() === 6)
+                        info.el.style.backgroundColor = 'rgba(248,249,250,0.5)';
+                }
+            });
+            cal.render();
+
+            function updateSidebars(events) {
+                // Upcoming Holidays
+                const now = new Date();
+                now.setHours(0,0,0,0);
+                const holidays = events
+                    .filter(e => (e.color === '#2563eb' || e.color === '#f59e0b' || e.backgroundColor === '#2563eb' || e.backgroundColor === '#f59e0b') && new Date(e.start) >= now)
+                    .sort((a,b) => new Date(a.start) - new Date(b.start))
+                    .slice(0, 6);
+
+                const hSidebar = document.getElementById('upcomingHolidaySidebar');
+                if (holidays.length === 0) {
+                    hSidebar.innerHTML = '<p class="text-muted small text-center py-2">No upcoming holidays this month.</p>';
+                } else {
+                    hSidebar.innerHTML = holidays.map(e => {
+                        const d = new Date(e.start);
+                        const isFloating = e.title.includes('Floating');
+                        const bg = isFloating ? '#fef3c7' : '#dbeafe';
+                        const clr = isFloating ? '#92400e' : '#1e40af';
+                        return `
+                            <div class="d-flex align-items-center gap-3 mb-3 pb-3 border-bottom">
+                                <div class="text-center rounded-3 p-2" style="min-width:44px; background:${bg};">
+                                    <div class="fw-bold" style="font-size:10px; color:${clr}; text-transform:uppercase;">${d.toLocaleString('default',{month:'short'})}</div>
+                                    <div class="fw-bold" style="font-size:1rem; color:${clr}">${d.getDate()}</div>
+                                </div>
+                                <div class="flex-grow-1 overflow-hidden">
+                                    <div class="fw-semibold text-dark small text-truncate">${e.title.replace(' (Floating)','')}</div>
+                                    <div class="text-muted" style="font-size:10px;">${d.toLocaleDateString('default',{weekday:'long'})}</div>
+                                </div>
+                                <span class="badge" style="background:${bg}; color:${clr}; font-size:9px; border-radius:10px;">${isFloating ? 'Floating' : 'Public'}</span>
+                            </div>`;
+                    }).join('');
+                }
+
+                // Team Leave
+                const todayStr = now.toISOString().split('T')[0];
+                const teamLeaves = events.filter(e => {
+                    const isLeave = e.color === '#10b981' || e.backgroundColor === '#10b981' || e.color === '#8b5cf6' || e.backgroundColor === '#8b5cf6';
+                    if (!isLeave) return false;
+                    const s = new Date(e.start); s.setHours(0,0,0,0);
+                    const end = e.end ? new Date(e.end) : s; end.setHours(0,0,0,0);
+                    return now >= s && now <= end;
+                });
+
+                const tSidebar = document.getElementById('teamLeaveSidebar');
+                if (teamLeaves.length === 0) {
+                    tSidebar.innerHTML = '<div class="text-center py-3"><div class="rounded-3 p-3" style="background:#dcfce7;"><i class="bi bi-emoji-smile me-2 text-success"></i><span class="small fw-semibold text-success">Full team available today!</span></div></div>';
+                } else {
+                    tSidebar.innerHTML = teamLeaves.map(e => `
+                        <div class="d-flex align-items-center gap-3 mb-2 p-2 rounded-3" style="background:#f0fdf4;">
+                            <div style="width:8px;height:8px;border-radius:50%;background:#10b981;flex-shrink:0;"></div>
+                            <div class="small fw-semibold text-dark text-truncate">${e.title}</div>
+                        </div>`).join('');
+                }
+            }
+        });
+    </script>
+    <style>
+        .fc-toolbar-title { font-size: 1.1rem !important; font-weight: 700 !important; }
+        .fc-button { border-radius: 20px !important; font-weight: 500; font-size: 0.82rem; border: none !important; padding: 5px 14px !important; }
+        .fc-button-primary { background-color: #f3f4f6 !important; color: #333 !important; }
+        .fc-button-primary:hover { background-color: #e5e7eb !important; }
+        .fc-button-active { background-color: #2563eb !important; color: #fff !important; }
+        .fc-event { margin-top: 2px !important; border-radius: 4px !important; border: none !important; cursor: pointer; transition: transform 0.15s; }
+        .fc-event:hover { transform: scale(1.02); }
+        .fc-daygrid-day-number { font-weight: 600; color: #6b7280; padding: 6px !important; }
+        .fc-day-today .fc-daygrid-day-number { color: #2563eb; }
+        .fc-day-today { background-color: rgba(37, 99, 235, 0.05) !important; }
+    </style>
+}

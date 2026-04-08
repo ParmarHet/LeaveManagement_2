@@ -259,8 +259,8 @@ public class HolidaysController : Controller
         {
             title = h.Name + (h.IsFloating ? " (Floating)" : ""),
             start = (h.IsRecurringYearly ? new DateTime(year, h.Date.Month, h.Date.Day) : h.Date).ToString("yyyy-MM-dd"),
-            backgroundColor = h.IsFloating ? "#ffc107" : "#0d6efd",
-            borderColor = h.IsFloating ? "#e0a800" : "#0056b3",
+            backgroundColor = h.IsFloating ? "#f59e0b" : "#2563eb",
+            borderColor = "transparent",
             textColor = "#fff",
             type = "holiday"
         }).ToList<object>();
@@ -274,11 +274,11 @@ public class HolidaysController : Controller
         if (User.IsInRole(Roles.Manager))
         {
             // Manager sees their team's leaves + their own
-            leavesQuery = leavesQuery.Where(r => r.RequestingEmployee.ManagerId == user.Id || r.RequestingEmployeeId == user.Id);
+            leavesQuery = leavesQuery.Where(r => r.RequestingEmployee!.ManagerId == user.Id || r.RequestingEmployeeId == user.Id);
         }
         else if (User.IsInRole(Roles.Admin))
         {
-            // Admin sees all? Let's limit it to the current view month/year for performance
+            // Admin sees all
             leavesQuery = leavesQuery.Where(l => (l.StartDate.Month == month && l.StartDate.Year == year) || (l.EndDate.Month == month && l.EndDate.Year == year));
         }
         else
@@ -293,8 +293,8 @@ public class HolidaysController : Controller
             title = (User.IsInRole(Roles.Manager) || User.IsInRole(Roles.Admin) ? $"{l.RequestingEmployee?.FirstName}: " : "") + l.LeaveType?.Name,
             start = l.StartDate.ToString("yyyy-MM-dd"),
             end = l.EndDate.AddDays(1).ToString("yyyy-MM-dd"), // FullCalendar end exclusive
-            backgroundColor = "#28a745",
-            borderColor = "#1e7e34",
+            backgroundColor = (l.RequestingEmployeeId == user.Id && User.IsInRole(Roles.Manager)) ? "#8b5cf6" : "#10b981", // distinct color for manager's own leave
+            borderColor = "transparent",
             textColor = "#fff",
             type = "leave"
         });

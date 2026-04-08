@@ -7,9 +7,15 @@
 }
 
 <div class="auth-container">
-    <div class="auth-header">
-        <h1>Welcome Back</h1>
-        <p>Log in to access your LMS portal</p>
+    <div class="auth-header d-flex flex-column align-items-center">
+        <div class="auth-logo d-flex align-items-center mb-3">
+            <div class="logo-icon">LP</div>
+            <div class="ms-3 text-start">
+                <div class="brand-name">LeavePro</div>
+            </div>
+        </div>
+        <h1 class="mb-1">Welcome Back</h1>
+        <p class="text-muted">Sign in to access your dashboard</p>
     </div>
 
     <form id="account" method="post">
@@ -24,11 +30,11 @@
             <label asp-for="Input.Password">Password</label>
             <span asp-validation-for="Input.Password" class="text-danger"></span>
         </div>
-        <div class="checkbox mb-3 d-flex justify-content-between align-items-center">
-            <label asp-for="Input.RememberMe" class="form-label mb-0">
-                <input class="form-check-input" asp-for="Input.RememberMe" />
-                @Html.DisplayNameFor(m => m.Input.RememberMe)
-            </label>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="form-check">
+                <input class="form-check-input" asp-for="Input.RememberMe" id="rememberMe" />
+                <label class="form-check-label ms-2" for="rememberMe">Remember me</label>
+            </div>
             <a id="forgot-password" asp-page="./ForgotPassword" class="small text-decoration-none">Forgot?</a>
         </div>
         <div>
@@ -36,20 +42,17 @@
         </div>
     </form>
 
-    @{
-        if ((Model.ExternalLogins?.Count ?? 0) > 0)
-        {
-            <div class="divider">or continue with</div>
-            <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post">
-                <div class="d-grid gap-2">
-                    @foreach (var provider in Model.ExternalLogins!)
-                    {
-                        <button type="submit" class="btn btn-outline-secondary" name="provider" value="@provider.Name">@provider.DisplayName</button>
-                    }
-                </div>
-            </form>
-        }
-    }
+    @{ if ((Model.ExternalLogins?.Count ?? 0) > 0) {
+        <div class="divider">or continue with</div>
+        <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+            <div class="d-grid gap-2">
+                @foreach (var provider in Model.ExternalLogins!)
+                {
+                    <button type="submit" class="btn btn-outline-secondary" name="provider" value="@provider.Name">@provider.DisplayName</button>
+                }
+            </div>
+        </form>
+    } }
 
     <div class="auth-footer">
         Don't have an account? <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Create One</a>

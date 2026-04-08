@@ -324,6 +324,43 @@ public class AdminController : Controller
     public async Task<IActionResult> LeaveStructure()
     {
         var leaveTypes = await _context.LeaveTypes.OrderBy(l => l.Name).ToListAsync();
+
+        // If no leave types configured, seed sensible defaults so the admin UI is populated
+        if (leaveTypes == null || !leaveTypes.Any())
+        {
+            var defaults = new List<LeaveType>
+            {
+                new LeaveType { Name = "Paid Leave", Code = "PL", DefaultDays = 18, IsPaid = true, RequiresApproval = true, MaxConsecutiveDays = 10, YearlyLimit = 18, CarryForward = true, IsEnabled = true, DateCreated = DateTime.UtcNow, DateModified = DateTime.UtcNow },
+                new LeaveType { Name = "Sick Leave", Code = "SL", DefaultDays = 10, IsPaid = true, RequiresApproval = true, MaxConsecutiveDays = 5, YearlyLimit = 10, CarryForward = false, IsEnabled = true, DateCreated = DateTime.UtcNow, DateModified = DateTime.UtcNow },
+                new LeaveType { Name = "Compensatory Off", Code = "CO", DefaultDays = 0, IsPaid = false, RequiresApproval = true, MaxConsecutiveDays = 0, YearlyLimit = 0, CarryForward = false, IsEnabled = true, DateCreated = DateTime.UtcNow, DateModified = DateTime.UtcNow },
+                new LeaveType { Name = "Floating Holiday", Code = "FD", DefaultDays = 0, IsPaid = true, RequiresApproval = false, MaxConsecutiveDays = 1, YearlyLimit = 1, CarryForward = false, IsEnabled = true, DateCreated = DateTime.UtcNow, DateModified = DateTime.UtcNow },
+                new LeaveType { Name = "Maternity Leave", Code = "ML", DefaultDays = 182, IsPaid = true, RequiresApproval = true, MaxConsecutiveDays = 182, YearlyLimit = 182, CarryForward = false, IsEnabled = true, DateCreated = DateTime.UtcNow, DateModified = DateTime.UtcNow },
+                new LeaveType { Name = "Bereavement Leave", Code = "BL", DefaultDays = 3, IsPaid = true, RequiresApproval = true, MaxConsecutiveDays = 5, YearlyLimit = 5, CarryForward = false, IsEnabled = true, DateCreated = DateTime.UtcNow, DateModified = DateTime.UtcNow },
+                new LeaveType { Name = "Leave Without Pay", Code = "LW", DefaultDays = 0, IsPaid = false, RequiresApproval = true, MaxConsecutiveDays = 0, YearlyLimit = 0, CarryForward = false, IsEnabled = true, DateCreated = DateTime.UtcNow, DateModified = DateTime.UtcNow }
+            };
+
+            _context.LeaveTypes.AddRange(defaults);
+            await _context.SaveChangesAsync();
+
+            leaveTypes = await _context.LeaveTypes.OrderBy(l => l.Name).ToListAsync();
+        }
+
+        // Ensure common missing fields have sensible display values (non-destructive)
+        foreach (var lt in leaveTypes)
+        {
+            if (string.IsNullOrWhiteSpace(lt.Code) && !string.IsNullOrWhiteSpace(lt.Name))
+            {
+                // derive a short code from name words
+                lt.Code = string.Concat(lt.Name.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(s => s[0])).ToUpper();
+                lt.DateModified = DateTime.UtcNow;
+            }
+        }
+        // Save only if we modified codes
+        if (leaveTypes.Any(l => _context.Entry(l).State == EntityState.Modified))
+        {
+            await _context.SaveChangesAsync();
+        }
+
         return View(leaveTypes);
     }
 
@@ -361,6 +398,157 @@ public class AdminController : Controller
             return RedirectToAction(nameof(LeaveStructure));
         }
         return View(model);
+    }
+
+    // ─── HOLIDAY CALENDAR ────────────────────────────────────────────────────
+    public async Task<IActionResult> HolidayCalendar()
+    {
+        var holidays = await _context.Holidays
+            .Include(h => h.Department)
+            .OrderBy(h => h.Date)
+            .ToListAsync();
+        ViewBag.Departments = await _context.Departments.OrderBy(d => d.Name).ToListAsync();
+        ViewBag.TotalHolidays = holidays.Count;
+        ViewBag.UpcomingCount = holidays.Count(h => h.Date >= DateTime.Today);
+        ViewBag.FloatingCount = holidays.Count(h => h.IsFloating);
+        return View(holidays);
+    }
+
+    [HttpGet]
+    public IActionResult AddHoliday()
+    {
+        ViewBag.Departments = _context.Departments.OrderBy(d => d.Name).ToList();
+        return View(new Holiday());
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> AddHoliday(Holiday model)
+    {
+        if (ModelState.IsValid)
+        {
+            if (model.DepartmentId == 0) model.DepartmentId = null;
+            _context.Holidays.Add(model);
+            await _context.SaveChangesAsync();
+            TempData["Success"] = "Holiday added successfully.";
+            return RedirectToAction(nameof(HolidayCalendar));
+        }
+        ViewBag.Departments = await _context.Departments.OrderBy(d => d.Name).ToListAsync();
+        return View(model);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> EditHoliday(int id)
+    {
+        var holiday = await _context.Holidays.FindAsync(id);
+        if (holiday == null) return NotFound();
+        ViewBag.Departments = await _context.Departments.OrderBy(d => d.Name).ToListAsync();
+        return View(holiday);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EditHoliday(int id, Holiday model)
+    {
+        if (id != model.Id) return NotFound();
+
+        if (ModelState.IsValid)
+        {
+            var existing = await _context.Holidays.FindAsync(id);
+            if (existing == null) return NotFound();
+
+            existing.Name = model.Name;
+            existing.Date = model.Date;
+            existing.IsRecurringYearly = model.IsRecurringYearly;
+            existing.IsFloating = model.IsFloating;
+            existing.DepartmentId = model.DepartmentId == 0 ? null : model.DepartmentId;
+
+            await _context.SaveChangesAsync();
+            TempData["Success"] = "Holiday updated successfully.";
+            return RedirectToAction(nameof(HolidayCalendar));
+        }
+        ViewBag.Departments = await _context.Departments.OrderBy(d => d.Name).ToListAsync();
+        return View(model);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteHoliday(int id)
+    {
+        var holiday = await _context.Holidays.FindAsync(id);
+        if (holiday != null)
+        {
+            _context.Holidays.Remove(holiday);
+            await _context.SaveChangesAsync();
+            TempData["Success"] = "Holiday deleted successfully.";
+        }
+        return RedirectToAction(nameof(HolidayCalendar));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ImportHolidays(IFormFile file, List<int>? departmentIds)
+    {
+        if (file == null || file.Length == 0)
+        {
+            TempData["Error"] = "Please upload a valid CSV file.";
+            return RedirectToAction(nameof(HolidayCalendar));
+        }
+
+        try
+        {
+            using var reader = new StreamReader(file.OpenReadStream());
+            string? line;
+            bool isHeader = true;
+            int count = 0;
+            while ((line = await reader.ReadLineAsync()) != null)
+            {
+                if (isHeader) { isHeader = false; continue; }
+                var parts = line.Split(',');
+                if (parts.Length >= 2)
+                {
+                    var name = parts[0].Trim();
+                    if (DateTime.TryParse(parts[1].Trim(), out var date) && !string.IsNullOrWhiteSpace(name))
+                    {
+                        bool isRecurring = parts.Length >= 3 &&
+                            (parts[2].Trim().Equals("true", StringComparison.OrdinalIgnoreCase) || parts[2].Trim() == "1");
+                        bool isFloating = parts.Length >= 4 &&
+                            (parts[3].Trim().Equals("true", StringComparison.OrdinalIgnoreCase) || parts[3].Trim() == "1");
+
+                        if (departmentIds != null && departmentIds.Any())
+                        {
+                            foreach (var deptId in departmentIds)
+                            {
+                                _context.Holidays.Add(new Holiday
+                                {
+                                    Name = name, Date = date,
+                                    IsRecurringYearly = isRecurring, IsFloating = isFloating,
+                                    DepartmentId = deptId
+                                });
+                                count++;
+                            }
+                        }
+                        else
+                        {
+                            _context.Holidays.Add(new Holiday
+                            {
+                                Name = name, Date = date,
+                                IsRecurringYearly = isRecurring, IsFloating = isFloating
+                            });
+                            count++;
+                        }
+                    }
+                }
+            }
+            await _context.SaveChangesAsync();
+            TempData["Success"] = $"{count} holidays imported successfully.";
+        }
+        catch (Exception ex)
+        {
+            TempData["Error"] = "Error importing holidays: " + ex.Message;
+        }
+
+        return RedirectToAction(nameof(HolidayCalendar));
     }
 
     // ─── HELPER: Map LeaveRequests to ViewModels ─────────────────────────────

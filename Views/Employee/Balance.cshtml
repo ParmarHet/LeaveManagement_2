@@ -3,18 +3,29 @@
     ViewData["Title"] = "Leave Balance";
     Layout = User.IsInRole("Admin") ? "_AdminLayout" : (User.IsInRole("Manager") ? "_ManagerLayout" : "_EmployeeLayout");
 
-    // Filter valid leave types:
-    // 1. Compulsory: Paid Leave, Floating Holiday, Sick Leave
-    // 2. Others: Only if used > 0
-    var compulsoryNames = new[] { "Paid Leave", "Floating Holiday", "Sick Leave", "Paid" };
-    var balances = Model.Where(b => 
-        compulsoryNames.Any(cn => b.LeaveTypeName.Contains(cn, StringComparison.OrdinalIgnoreCase)) || 
-        b.Used > 0
+    // Leave categories logic:
+    // 1. Annual Allocations (Standard): PL, SL, CL always show.
+    // 2. Credits: CO shows only if balance exists.
+    // 3. Special/Unallocated Usage: BL, ML, LW, or CO (with 0 balance but used) show only if used > 0.
+    
+    var activeBalances = Model.Where(b => 
+        (b.LeaveTypeCode.Equals("PL", StringComparison.OrdinalIgnoreCase) || 
+         b.LeaveTypeCode.Equals("SL", StringComparison.OrdinalIgnoreCase) || 
+         b.LeaveTypeCode.Equals("CL", StringComparison.OrdinalIgnoreCase) ||
+         b.LeaveTypeCode.Equals("FD", StringComparison.OrdinalIgnoreCase) ||
+         b.LeaveTypeName.Contains("Casual", StringComparison.OrdinalIgnoreCase) ||
+         b.LeaveTypeName.Contains("Floating", StringComparison.OrdinalIgnoreCase)) ||
+        (b.LeaveTypeCode.Equals("CO", StringComparison.OrdinalIgnoreCase) && b.Allocated > 0)
     ).ToList();
 
-    var totalAllocated = balances.Where(b => b.Allocated > 0).Sum(b => b.Allocated);
-    var totalUsed      = balances.Where(b => b.Allocated > 0).Sum(b => b.Used);
-    var totalRemaining = balances.Where(b => b.Allocated > 0).Sum(b => b.Remaining);
+    var usageHistory = Model.Where(b => 
+        ((b.LeaveTypeCode == "BL" || b.LeaveTypeCode == "ML" || b.LeaveTypeCode == "LW") && b.Used > 0) ||
+        (b.LeaveTypeCode == "CO" && b.Allocated == 0 && b.Used > 0)
+    ).ToList();
+
+    var totalAllocated = activeBalances.Sum(b => b.Allocated);
+    var totalUsed      = activeBalances.Sum(b => b.Used);
+    var totalRemaining = activeBalances.Sum(b => b.Remaining);
 }
 
 @section Styles {
@@ -397,7 +408,7 @@
     </div>
 
     <!-- ── Summary Strip (only if there are standard leaves) ── -->
-    @if (balances.Any(b => b.Allocated > 0))
+    @if (activeBalances.Any(b => b.Allocated > 0))
     {
         <div class="lb-summary">
             <div class="lb-summary-card">
@@ -439,31 +450,25 @@
         </div>
     }
 
-    <!-- ── Cards Grid ───────────────────────────────── -->
-    @if (balances.Any())
+    <!-- ── Annual Allocations Section ──────────────── -->
+    @if (activeBalances.Any())
     {
-        <div class="lb-section-label">All Leave Types</div>
-        <div class="lb-grid">
+        <div class="lb-section-label">Annual Allocations & Credits</div>
+        <div class="lb-grid mb-5">
         @{ int cardIndex = 0; }
-        @foreach (var b in balances)
+        @foreach (var b in activeBalances)
         {
             var total     = b.Allocated;
             var used      = b.Used;
             var remaining = b.Remaining;
-            var isStandard = total > 0;
-
-            var usedPct      = isStandard && total > 0 ? (int)Math.Round((double)used / total * 100) : 0;
-            var remainingPct = isStandard ? 100 - usedPct : 100;
+            
+            var usedPct      = total > 0 ? (int)Math.Round((double)used / total * 100) : 0;
+            var remainingPct = 100 - usedPct;
 
             // Color tokens
             string accentColor, barColor, chipBg, chipColor;
 
-            if (!isStandard) {
-                accentColor = "var(--s-open-bar)";
-                barColor    = "var(--s-open-bar)";
-                chipBg      = "var(--s-open-bg)";
-                chipColor   = "var(--s-open-txt)";
-            } else if (remainingPct > 50) {
+            if (remainingPct > 50) {
                 accentColor = "var(--s-green-bar)";
                 barColor    = "var(--s-green-bar)";
                 chipBg      = "var(--s-green-bg)";
@@ -485,72 +490,70 @@
             <div class="lb-card" style="animation-delay: @(delay)ms">
                 <div class="lb-card-accent" style="background: @accentColor;"></div>
                 <div class="lb-card-inner">
-
-                    <!-- Top row: name + chip -->
                     <div class="lb-card-top">
                         <p class="lb-card-name">@b.LeaveTypeName</p>
                         <span class="lb-status-chip" style="background:@chipBg; color:@chipColor;">
-                            @if (!isStandard)
-                            {
-                                <i class="fa-solid fa-infinity me-1" style="font-size:10px;"></i>@:Open
-                            }
-                            else if (remainingPct > 50)
-                            {
-                                <i class="fa-solid fa-seedling me-1" style="font-size:10px;"></i>@:Good
-                            }
-                            else if (remainingPct > 20)
-                            {
-                                <i class="fa-solid fa-triangle-exclamation me-1" style="font-size:10px;"></i>@:Low
-                            }
-                            else
-                            {
-                                <i class="fa-solid fa-circle-exclamation me-1" style="font-size:10px;"></i>@:Critical
-                            }
+                            @if (remainingPct > 50) { <i class="fa-solid fa-seedling me-1"></i><span>Good</span> }
+                            else if (remainingPct > 20) { <i class="fa-solid fa-triangle-exclamation me-1"></i><span>Low</span> }
+                            else { <i class="fa-solid fa-circle-exclamation me-1"></i><span>Critical</span> }
                         </span>
                     </div>
 
-                    @if (isStandard)
-                    {
-                        <!-- Big number -->
-                        <div class="lb-numbers">
-                            <span class="lb-big-num">@remaining</span>
-                            <span class="lb-num-of">of @total days left</span>
-                        </div>
+                    <div class="lb-numbers">
+                        <span class="lb-big-num">@remaining</span>
+                        <span class="lb-num-of">of @total days left</span>
+                    </div>
 
-                        <!-- Progress bar -->
-                        <div class="lb-bar-wrap">
-                            <div class="lb-bar-fill" style="width: @usedPct%; background: @barColor;"></div>
-                        </div>
+                    <div class="lb-bar-wrap">
+                        <div class="lb-bar-fill" style="width: @usedPct%; background: @barColor;"></div>
+                    </div>
 
-                        <!-- Footer -->
-                        <div class="lb-card-footer">
-                            <div class="lb-foot-stat">
-                                <i class="fa-solid fa-calendar-xmark" style="color:@barColor;"></i>
-                                Used: <strong>@used day@(used == 1 ? "" : "s")</strong>
-                            </div>
-                            <span class="lb-foot-pct">@usedPct% used</span>
+                    <div class="lb-card-footer">
+                        <div class="lb-foot-stat">
+                            <i class="fa-solid fa-calendar-xmark" style="color:@barColor;"></i>
+                            Used: <strong>@used day@(used == 1 ? "" : "s")</strong>
                         </div>
-                    }
-                    else
-                    {
-                        <!-- Open leave: days used -->
-                        <div class="lb-numbers lb-open-used">
-                            <span class="lb-big-num">@used</span>
-                            <span class="lb-num-of">day@(used == 1 ? "" : "s") taken</span>
-                        </div>
-
-                        <div class="lb-open-info">
-                            <i class="fa-solid fa-circle-info"></i>
-                            No fixed allocation — subject to manager approval
-                        </div>
-                    }
-
+                        <span class="lb-foot-pct">@usedPct% used</span>
+                    </div>
                 </div>
             </div>
         }
         </div>
     }
-    else
+
+    <!-- ── Usage History Section ───────────────────── -->
+    @if (usageHistory.Any())
+    {
+        <div class="lb-section-label" style="margin-top: 40px;">Usage History (Special Leaves)</div>
+        <div class="lb-grid">
+        @foreach (var b in usageHistory)
+        {
+            <div class="lb-card" style="border-style: dashed; background: #fdfdfd;">
+                <div class="lb-card-accent" style="background: var(--lms-border);"></div>
+                <div class="lb-card-inner">
+                    <div class="lb-card-top">
+                        <p class="lb-card-name">@b.LeaveTypeName</p>
+                        <span class="lb-status-chip" style="background:var(--lms-surface-2); color:var(--lms-muted);">
+                            History Only
+                        </span>
+                    </div>
+
+                    <div class="lb-numbers lb-open-used">
+                        <span class="lb-big-num">@b.Used</span>
+                        <span class="lb-num-of">day@(b.Used == 1 ? "" : "s") consumed</span>
+                    </div>
+
+                    <div class="lb-open-info" style="border-style: dotted;">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                        Recorded usage for the current financial year.
+                    </div>
+                </div>
+            </div>
+        }
+        </div>
+    }
+
+    @if (!activeBalances.Any() && !usageHistory.Any())
     {
         <!-- Empty state -->
         <div class="lb-empty">

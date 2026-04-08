@@ -2,131 +2,274 @@
 @{
     ViewData["Title"] = "Holiday Calendar";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var departments = ViewBag.Departments as List<LMS.Models.Department> ?? new List<LMS.Models.Department>();
 }
 
-<div class="page-header d-flex justify-content-between align-items-start flex-wrap gap-2">
-    <div>
-        <h2><i class="bi bi-calendar-event me-2" style="color:#16a34a"></i>Holiday Calendar</h2>
-        <p>Manage company holidays visible to all employees and managers</p>
+<!-- STATS ROW -->
+<div class="ds-page-header align-items-center">
+    <h1 class="ds-page-title">Holiday<br>Management</h1>
+    <div class="d-flex gap-4">
+        <div class="ds-stat-card" style="background:#dbeafe; min-width:160px; height:120px; padding:20px;">
+            <div class="ds-stat-label" style="color:#1d4ed8;">Total Holidays</div>
+            <div class="ds-stat-value" style="color:#1e40af; font-size:2rem;">@ViewBag.TotalHolidays</div>
+            <div class="ds-stat-icon-floating" style="color:#1d4ed8;"><i class="bi bi-calendar-event"></i></div>
+        </div>
+        <div class="ds-stat-card" style="background:#dcfce7; min-width:160px; height:120px; padding:20px;">
+            <div class="ds-stat-label" style="color:#059669;">Upcoming</div>
+            <div class="ds-stat-value" style="color:#065f46; font-size:2rem;">@ViewBag.UpcomingCount</div>
+            <div class="ds-stat-icon-floating" style="color:#059669;"><i class="bi bi-arrow-up-circle"></i></div>
+        </div>
+        <div class="ds-stat-card" style="background:#fef3c7; min-width:160px; height:120px; padding:20px;">
+            <div class="ds-stat-label" style="color:#b45309;">Floating</div>
+            <div class="ds-stat-value" style="color:#92400e; font-size:2rem;">@ViewBag.FloatingCount</div>
+            <div class="ds-stat-icon-floating" style="color:#b45309;"><i class="bi bi-star"></i></div>
+        </div>
     </div>
-    <div class="d-flex gap-2">
-        <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#importModal">
+</div>
+
+<!-- ACTION BAR -->
+<div class="ds-filter-bar d-flex gap-2 align-items-center mb-3 p-3 bg-white shadow-sm" style="border-radius: 12px;">
+    <select id="filterDept" class="form-select w-auto rounded-pill border-light text-muted small" onchange="filterTable()">
+        <option value="All">All Departments</option>
+        <option value="Global">Global (All Employees)</option>
+        @foreach(var dept in departments)
+        {
+            <option value="@dept.Name">@dept.Name</option>
+        }
+    </select>
+    <select id="filterType" class="form-select w-auto rounded-pill border-light text-muted small" onchange="filterTable()">
+        <option value="All">All Types</option>
+        <option value="Public">Public</option>
+        <option value="Floating">Floating</option>
+    </select>
+    <div class="ms-auto d-flex gap-2">
+        <button class="btn btn-outline-secondary btn-sm rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#importModal">
             <i class="bi bi-upload me-1"></i> Import CSV
         </button>
-        <a asp-controller="Admin" asp-action="AddHoliday" class="btn btn-sm" style="background:#6366f1; color:#fff;">
+        <a asp-action="AddHoliday" class="ds-btn-primary" style="font-size:0.82rem; padding:8px 18px;">
             <i class="bi bi-plus-circle me-1"></i> Add Holiday
         </a>
     </div>
 </div>
 
-<div class="admin-table">
-    @if (!Model.Any())
-    {
-        <div class="text-center py-5 text-muted">
-            <i class="bi bi-calendar-x" style="font-size:3rem; opacity:0.3"></i>
-            <p class="mt-3">No holidays added yet. Click "Add Holiday" to get started.</p>
+<!-- CALENDAR + LIST SPLIT -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-8">
+        <div class="ds-table-container mt-0 p-0 overflow-hidden">
+            <div id="adminCalendar" style="padding:20px;"></div>
         </div>
-    }
-    else
-    {
-        <div class="table-responsive">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Holiday Name</th>
-                        <th>Date</th>
-                        <th>Day</th>
-                        <th>Recurring Yearly</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @{int i = 1;}
-                    @foreach (var h in Model)
-                    {
-                        var isPast = h.Date < DateTime.Today;
-                        var isToday = h.Date.Date == DateTime.Today;
-                        <tr class="@(isPast ? "text-muted" : "")">
-                            <td>@i</td>
-                            <td class="fw-semibold">@h.Name</td>
-                            <td>@h.Date.ToString("dd MMMM yyyy")</td>
-                            <td>@h.Date.ToString("dddd")</td>
-                            <td>
-                                @if (h.IsRecurringYearly)
-                                {
-                                    <span class="badge bg-success bg-opacity-10 text-success"><i class="bi bi-arrow-repeat me-1"></i>Yes</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-secondary bg-opacity-10 text-secondary">No</span>
-                                }
-                            </td>
-                            <td>
-                                @if (isToday)
-                                {
-                                    <span class="badge badge-approved" style="border-radius:20px; padding:5px 10px">Today</span>
-                                }
-                                else if (isPast)
-                                {
-                                    <span class="badge badge-cancelled" style="border-radius:20px; padding:5px 10px">Past</span>
-                                }
-                                else
-                                {
-                                    var daysLeft = (h.Date - DateTime.Today).Days;
-                                    <span class="badge badge-pending" style="border-radius:20px; padding:5px 10px">In @daysLeft days</span>
-                                }
-                            </td>
-                            <td>
-                                <a asp-action="EditHoliday" asp-route-id="@h.Id" class="btn btn-sm btn-outline-primary me-1">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                                <form asp-action="DeleteHoliday" asp-route-id="@h.Id" method="post" class="d-inline"
-                                      onsubmit="return confirm('Delete holiday \'@h.Name\'?')">
-                                    @Html.AntiForgeryToken()
-                                    <button type="submit" class="btn btn-sm btn-outline-danger">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                        i++;
-                    }
-                </tbody>
-            </table>
+    </div>
+    <div class="col-lg-4">
+        <div class="ds-table-container mt-0 p-4 h-100">
+            <h6 class="fw-bold mb-3"><i class="bi bi-calendar-check me-2 text-primary"></i>Upcoming Holidays</h6>
+            <div id="upcomingSidebar">
+                @{var upcoming = Model.Where(h => h.Date >= DateTime.Today).OrderBy(h => h.Date).Take(8).ToList();}
+                @if (!upcoming.Any())
+                {
+                    <p class="text-muted small text-center py-3">No upcoming holidays.</p>
+                }
+                @foreach (var h in upcoming)
+                {
+                    var daysLeft = (h.Date - DateTime.Today).Days;
+                    <div class="d-flex align-items-center gap-3 mb-3 pb-3 border-bottom">
+                        <div class="text-center rounded-3 p-2" style="min-width:48px; background:@(h.IsFloating ? "#fef3c7" : "#dbeafe");">
+                            <div class="fw-bold small text-uppercase" style="font-size:10px; color:@(h.IsFloating ? "#b45309" : "#1d4ed8")">@h.Date.ToString("MMM")</div>
+                            <div class="fw-bold" style="font-size:1.1rem; color:@(h.IsFloating ? "#92400e" : "#1e40af")">@h.Date.Day</div>
+                        </div>
+                        <div class="flex-grow-1 overflow-hidden">
+                            <div class="fw-semibold text-dark small text-truncate">@h.Name</div>
+                            <div class="text-muted" style="font-size:11px;">@h.Date.ToString("dddd") · @(h.DepartmentId != null ? h.Department?.Name : "All")</div>
+                        </div>
+                        <div>
+                            @if (h.IsFloating)
+                            {<span class="badge" style="background:#fef3c7; color:#92400e; font-size:10px;">Floating</span>}
+                            else
+                            {<span class="badge" style="background:#dbeafe; color:#1d4ed8; font-size:10px;">Public</span>}
+                        </div>
+                    </div>
+                }
+            </div>
+            <!-- Legend -->
+            <div class="mt-3 pt-3 border-top">
+                <div class="d-flex align-items-center gap-2 mb-2"><div style="width:10px;height:10px;border-radius:50%;background:#2563eb;"></div><span class="small text-muted">Public Holiday</span></div>
+                <div class="d-flex align-items-center gap-2 mb-2"><div style="width:10px;height:10px;border-radius:50%;background:#f59e0b;"></div><span class="small text-muted">Floating Holiday</span></div>
+                <div class="d-flex align-items-center gap-2"><div style="width:10px;height:10px;border-radius:50%;background:#10b981;"></div><span class="small text-muted">Approved Leave</span></div>
+            </div>
         </div>
-    }
+    </div>
+</div>
+
+<!-- HOLIDAY TABLE -->
+<div class="ds-table-container mt-0">
+    <div class="px-3 py-2 border-bottom d-flex justify-content-between align-items-center">
+        <h6 class="fw-bold mb-0">All Holidays</h6>
+        <span class="badge bg-light text-dark border small">@Model.Count holidays</span>
+    </div>
+    <table class="ds-table" id="holidayTable">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Holiday Name</th>
+                <th>Date</th>
+                <th>Day</th>
+                <th>Type</th>
+                <th>Scope</th>
+                <th>Recurrence</th>
+                <th>Status</th>
+                <th class="text-end">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{int idx = 1;}
+            @foreach (var h in Model)
+            {
+                var isPast = h.Date < DateTime.Today;
+                var isToday = h.Date.Date == DateTime.Today;
+                <tr data-dept="@(h.DepartmentId != null ? h.Department?.Name : "Global")" data-type="@(h.IsFloating ? "Floating" : "Public")" class="@(isPast ? "text-muted" : "")">
+                    <td>@idx</td>
+                    <td><span class="fw-semibold">@h.Name</span></td>
+                    <td>@h.Date.ToString("dd MMM yyyy")</td>
+                    <td>@h.Date.ToString("dddd")</td>
+                    <td>
+                        @if (h.IsFloating)
+                        {<span class="badge" style="background:#fef3c7; color:#92400e; border-radius:12px; padding:4px 10px;">⭐ Floating</span>}
+                        else
+                        {<span class="badge" style="background:#dbeafe; color:#1d4ed8; border-radius:12px; padding:4px 10px;">🏛 Public</span>}
+                    </td>
+                    <td>
+                        @if (h.DepartmentId != null)
+                        {<span class="badge bg-light text-dark border" style="border-radius:12px; padding:4px 10px;"><i class="bi bi-building me-1"></i>@h.Department?.Name</span>}
+                        else
+                        {<span class="badge" style="background:#dcfce7; color:#065f46; border-radius:12px; padding:4px 10px;"><i class="bi bi-globe me-1"></i>All Depts</span>}
+                    </td>
+                    <td>
+                        @if (h.IsRecurringYearly)
+                        {<span class="text-success small"><i class="bi bi-arrow-repeat me-1"></i>Yearly</span>}
+                        else
+                        {<span class="text-muted small">One-time</span>}
+                    </td>
+                    <td>
+                        @if (isToday) {<div class="ds-status-dot ds-dot-success" title="Today">T</div>}
+                        else if (isPast) {<div class="ds-status-dot" style="background:#9ca3af" title="Past">P</div>}
+                        else {
+                            var dl = (h.Date - DateTime.Today).Days;
+                            <div class="ds-status-dot ds-dot-pending" title="In @dl days">@dl</div>
+                        }
+                    </td>
+                    <td class="text-end">
+                        <a asp-action="EditHoliday" asp-route-id="@h.Id" class="btn btn-sm btn-outline-primary me-1" style="border-radius:50px; padding:4px 12px;">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <form asp-action="DeleteHoliday" asp-route-id="@h.Id" method="post" class="d-inline" onsubmit="return confirm('Delete \'@h.Name\'?')">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius:50px; padding:4px 12px;">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                idx++;
+            }
+            @if (!Model.Any())
+            {
+                <tr><td colspan="9" class="text-center py-5 text-muted"><i class="bi bi-calendar-x fs-1 d-block mb-2 opacity-25"></i>No holidays yet. Add your first holiday!</td></tr>
+            }
+        </tbody>
+    </table>
 </div>
 
 <!-- IMPORT MODAL -->
 <div class="modal fade" id="importModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content rounded-3 border-0 shadow">
-            <div class="modal-header border-0" style="background:#f8fafc;">
-                <h5 class="modal-title fw-bold"><i class="bi bi-upload me-2"></i>Import Holidays from CSV</h5>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:20px;">
+            <div class="modal-header border-0 pb-0 pt-4 px-4">
+                <h5 class="modal-title fw-bold"><i class="bi bi-upload me-2 text-primary"></i>Import Holiday List</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form asp-action="ImportHolidays" method="post" enctype="multipart/form-data">
                 @Html.AntiForgeryToken()
-                <div class="modal-body">
-                    <div class="alert alert-info py-2" style="font-size:0.83rem;">
+                <div class="modal-body px-4 py-3">
+                    <div class="alert py-2 mb-3" style="background:#f0f9ff; border: 1px solid #bae6fd; border-radius:12px; font-size:0.82rem; color:#0369a1;">
                         <i class="bi bi-info-circle me-1"></i>
-                        CSV format: <code>Name,Date,IsRecurringYearly</code><br/>
-                        Example: <code>New Year,2026-01-01,true</code>
+                        CSV format: <code>Name,Date,IsRecurring,IsFloating</code><br>
+                        Example: <code>Republic Day,2026-01-26,true,false</code>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Select CSV File</label>
-                        <input type="file" name="file" accept=".csv" class="form-control" required />
+                        <label class="form-label fw-semibold small">CSV File <span class="text-danger">*</span></label>
+                        <input type="file" name="file" accept=".csv" class="form-control" required style="border-radius:10px;" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Assign to Departments <span class="text-muted fw-normal">(leave blank = global)</span></label>
+                        <div class="border rounded-3 p-3" style="max-height:150px; overflow-y:auto;">
+                            @foreach(var dept in departments)
+                            {
+                                <div class="form-check mb-1">
+                                    <input class="form-check-input" type="checkbox" name="departmentIds" value="@dept.Id" id="dept_@dept.Id">
+                                    <label class="form-check-label small" for="dept_@dept.Id">@dept.Name</label>
+                                </div>
+                            }
+                            @if (!departments.Any())
+                            {
+                                <p class="text-muted small mb-0">No departments configured. Holidays will be global.</p>
+                            }
+                        </div>
                     </div>
                 </div>
-                <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn" style="background:#6366f1; color:#fff;">
-                        <i class="bi bi-upload me-1"></i> Import
-                    </button>
+                <div class="modal-footer border-0 px-4 pb-4">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="ds-btn-primary"><i class="bi bi-upload me-1"></i> Import</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var cal = new FullCalendar.Calendar(document.getElementById('adminCalendar'), {
+                initialView: 'dayGridMonth',
+                headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,listMonth' },
+                height: 500,
+                events: function(info, ok, fail) {
+                    fetch(`/Holidays/GetCalendarData?month=${info.start.getMonth()+1}&year=${info.start.getFullYear()}`)
+                        .then(r => r.json()).then(ok).catch(fail);
+                },
+                eventContent: function(arg) {
+                    let el = document.createElement('div');
+                    el.classList.add('fc-event-title-container');
+                    el.innerHTML = `<div class="fc-event-title fw-semibold text-truncate small ms-1">${arg.event.title}</div>`;
+                    return { domNodes: [el] };
+                },
+                dayCellDidMount: function(info) {
+                    if (info.date.getDay() === 0 || info.date.getDay() === 6) info.el.style.backgroundColor = 'rgba(248,249,250,0.5)';
+                }
+            });
+            cal.render();
+        });
+
+        function filterTable() {
+            const dept = document.getElementById('filterDept').value;
+            const type = document.getElementById('filterType').value;
+            document.querySelectorAll('#holidayTable tbody tr').forEach(row => {
+                if (!row.dataset.dept) return;
+                const matchDept = dept === 'All' || row.dataset.dept === dept;
+                const matchType = type === 'All' || row.dataset.type === type;
+                row.style.display = (matchDept && matchType) ? '' : 'none';
+            });
+        }
+    </script>
+    <style>
+        .fc-toolbar-title { font-size: 1.1rem !important; font-weight: 700 !important; }
+        .fc-button { border-radius: 20px !important; font-weight: 500; font-size: 0.82rem; border: none !important; padding: 5px 14px !important; }
+        .fc-button-primary { background-color: #f3f4f6 !important; color: #333 !important; }
+        .fc-button-primary:hover { background-color: #e5e7eb !important; }
+        .fc-button-active { background-color: #2563eb !important; color: #fff !important; }
+        .fc-event { margin-top: 2px !important; border-radius: 4px !important; border: none !important; cursor: pointer; transition: transform 0.15s; }
+        .fc-event:hover { transform: scale(1.02); }
+        .fc-daygrid-day-number { font-weight: 600; color: #6b7280; padding: 6px !important; }
+        .fc-day-today .fc-daygrid-day-number { color: #2563eb; }
+    </style>
+}

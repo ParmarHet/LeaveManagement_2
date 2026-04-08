@@ -22,27 +22,7 @@
             <div class="ds-stat-icon-floating"><i class="bi bi-check-circle"></i></div>
         </div>
 
-        <!-- Holidays Remaining Card -->
-        @{
-            var holi = Model.LeaveBalances.FirstOrDefault(b => b.LeaveTypeName.Contains("Holiday", StringComparison.OrdinalIgnoreCase) || b.LeaveTypeCode == "HO");
-        }
-        @if (holi != null)
-        {
-            <div class="ds-stat-card ds-card-palette-3">
-                <div class="ds-stat-label">@holi.LeaveTypeName Remaining</div>
-                <div class="ds-stat-value">@holi.Remaining <span class="fs-6 opacity-75 font-monospace">/ @holi.Allocated</span></div>
-                <div class="ds-stat-icon-floating"><i class="bi bi-calendar3"></i></div>
-            </div>
-        }
-        else if (Model.LeaveBalances.Any())
-        {
-            var firstBalance = Model.LeaveBalances.First();
-            <div class="ds-stat-card ds-card-palette-3">
-                <div class="ds-stat-label">@firstBalance.LeaveTypeName Remaining</div>
-                <div class="ds-stat-value">@firstBalance.Remaining <span class="fs-6 opacity-75 font-monospace">/ @firstBalance.Allocated</span></div>
-                <div class="ds-stat-icon-floating"><i class="bi bi-wallet2"></i></div>
-            </div>
-        }
+
     </div>
 </div>
 
@@ -107,8 +87,13 @@
             <h6 class="fw-bold mb-4">Leave Balance Summary</h6>
             @{
                 var filteredBalances = Model.LeaveBalances.Where(b => 
-                    (b.LeaveTypeCode != "CO" && b.LeaveTypeCode != "LW" && b.LeaveTypeCode != "ML" && b.LeaveTypeCode != "BL") || 
-                    b.Used > 0 || b.Allocated > 0).ToList();
+                    (b.LeaveTypeCode.Equals("PL", StringComparison.OrdinalIgnoreCase) || 
+                     b.LeaveTypeCode.Equals("SL", StringComparison.OrdinalIgnoreCase) || 
+                     b.LeaveTypeCode.Equals("CL", StringComparison.OrdinalIgnoreCase) ||
+                     b.LeaveTypeCode.Equals("FD", StringComparison.OrdinalIgnoreCase) ||
+                     b.LeaveTypeName.Contains("Casual", StringComparison.OrdinalIgnoreCase) ||
+                     b.LeaveTypeName.Contains("Floating", StringComparison.OrdinalIgnoreCase)) ||
+                    (b.LeaveTypeCode.Equals("CO", StringComparison.OrdinalIgnoreCase) && b.Allocated > 0)).ToList();
             }
             @foreach (var b in filteredBalances)
             {

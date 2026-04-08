@@ -401,7 +401,7 @@ public class EmployeeController : Controller
             // Send Email to Manager
             if (manager != null && !string.IsNullOrEmpty(manager.Email))
             {
-                var dashboardUrl = Url.Action("Dashboard", "Manager", new { area = "" }, Request.Scheme);
+                var dashboardUrl = Url.Action("Dashboard", "Manager", new { area = "" }, Request.Scheme) ?? string.Empty;
                 var emailBody = EmailTemplateHelper.GetLeaveRequestTemplate(
                     $"{user.FirstName} {user.LastName}",
                     leaveType?.Name ?? "Leave",
@@ -573,23 +573,84 @@ public class EmployeeController : Controller
         var result = await _userManager.UpdateAsync(user);
         if (result.Succeeded)
         {
+            // If AJAX request, return JSON success to allow inline update without redirect
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return Json(new { success = true });
+            }
+
             TempData["Success"] = "Profile updated successfully!";
-        }
-        else
-        {
-            TempData["Error"] = "Failed to update profile. " + string.Join(", ", result.Errors.Select(e => e.Description));
+            return RedirectToAction(nameof(Profile));
         }
 
+        var errorMsg = string.Join(", ", result.Errors.Select(e => e.Description));
+        if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+        {
+            Response.StatusCode = 400;
+            return Json(new { success = false, error = errorMsg });
+        }
+
+        TempData["Error"] = "Failed to update profile. " + errorMsg;
         return RedirectToAction(nameof(Profile));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            var errors = string.Join(", ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+            return Json(new { success = false, error = errors });
+        }
+
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null) return Challenge();
+
+        var result = await _userManager.ChangePasswordAsync(user, model.OldPassword, model.NewPassword);
+        if (result.Succeeded)
+        {
+            return Json(new { success = true, message = "Password changed successfully!" });
+        }
+
+        var errorMsg = string.Join(", ", result.Errors.Select(e => e.Description));
+        return Json(new { success = false, error = errorMsg });
     }
 
     // ─── HELPERS ────────────────────────────────────────────
     private async Task<List<LeaveBalanceViewModel>> GetLeaveBalancesAsync(ApplicationUser user, List<LeaveRequest> allApprovedLeaves)
     {
         var leaveTypes = await _context.LeaveTypes.ToListAsync();
+
+        // Auto-heal missing Casual Leave since system has hardcoded rules for it
+        if (!leaveTypes.Any(lt => lt.Code == "CL"))
+        {
+            var clType = new LeaveType { Name = "Casual Leave", Code = "CL", DefaultDays = 12, IsPaid = true, RequiresApproval = true, MaxConsecutiveDays = 2, YearlyLimit = 12, CarryForward = false, IsEnabled = true, DateCreated = DateTime.UtcNow, DateModified = DateTime.UtcNow };
+            _context.LeaveTypes.Add(clType);
+            await _context.SaveChangesAsync();
+            leaveTypes.Add(clType);
+        }
         var allocations = await _context.LeaveAllocations
             .Where(a => a.EmployeeId == user.Id && a.Period == DateTime.Now.Year)
             .ToListAsync();
+
+        // Auto-allocate CL if it's in the system but the user doesn't have an allocation record
+        var clTypeInDb = leaveTypes.FirstOrDefault(lt => lt.Code == "CL");
+        if (clTypeInDb != null && !allocations.Any(a => a.LeaveTypeId == clTypeInDb.Id))
+        {
+            var newAlloc = new LeaveAllocation
+            {
+                EmployeeId = user.Id,
+                LeaveTypeId = clTypeInDb.Id,
+                NumberOfDays = clTypeInDb.DefaultDays,
+                Period = DateTime.Now.Year,
+                DateCreated = DateTime.UtcNow,
+                DateModified = DateTime.UtcNow
+            };
+            _context.LeaveAllocations.Add(newAlloc);
+            await _context.SaveChangesAsync();
+            allocations.Add(newAlloc);
+        }
         var cos = await _context.CompensatoryOffs
             .Where(c => c.EmployeeId == user.Id)
             .ToListAsync();
@@ -599,6 +660,12 @@ public class EmployeeController : Controller
 
         foreach (var type in leaveTypes)
         {
+             // Rule: Weekly Off (WO) and Holiday (HD) should not show in balances
+             if (type.Code == "WO" || type.Code == "HD") continue;
+
+             // Rule: Maternity Leave (ML) only for female employees
+             if (type.Code == "ML" && user.Gender?.ToLower() != "female") continue;
+
              var typeLeaves = allApprovedLeaves.Where(l => l.LeaveTypeId == type.Id).ToList();
              double used = typeLeaves.Sum(l => (double)CountBusinessDays(l.StartDate, l.EndDate) - holidays.Count(h => h.Date >= l.StartDate && h.Date <= l.EndDate));
              
@@ -606,6 +673,7 @@ public class EmployeeController : Controller
              
              if (type.Code == "CO")
              {
+                  // Compensatory Off logic
                   balances.Add(new LeaveBalanceViewModel {
                        LeaveTypeName = type.Name,
                        LeaveTypeCode = type.Code,
@@ -615,19 +683,21 @@ public class EmployeeController : Controller
              }
              else if (type.Code == "LW" || type.Code == "ML" || type.Code == "BL")
              {
+                  // Special leaves (usually usage based, no fixed allocation)
                   balances.Add(new LeaveBalanceViewModel {
                        LeaveTypeName = type.Name,
                        LeaveTypeCode = type.Code,
-                       Allocated = 0,
+                       Allocated = alloc != null ? (int)Math.Floor(alloc.NumberOfDays) : 0,
                        Used = (int)Math.Floor(used)
                   });
              }
-             else if (alloc != null)
+             else
              {
+                  // Standard leaves (PL, SL, CL, etc.)
                   balances.Add(new LeaveBalanceViewModel {
                        LeaveTypeName = type.Name,
                        LeaveTypeCode = type.Code,
-                       Allocated = (int)Math.Floor(alloc.NumberOfDays),
+                       Allocated = alloc != null ? (int)Math.Floor(alloc.NumberOfDays) : 0,
                        Used = (int)Math.Floor(used)
                   });
              }

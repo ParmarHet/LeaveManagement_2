@@ -3,61 +3,130 @@
     ViewData["Title"] = "Holiday Calendar";
     Layout = User.IsInRole("Admin") ? "_AdminLayout" : (User.IsInRole("Manager") ? "_ManagerLayout" : "_EmployeeLayout");
     var now = DateTime.Now;
+    var upcomingHolidays = Model.Where(h => h.Date >= DateTime.Today).OrderBy(h => h.Date).Take(10).ToList();
+    var pastHolidays = Model.Where(h => h.Date < DateTime.Today).OrderByDescending(h => h.Date).Take(5).ToList();
 }
 
-<div class="row g-4">
-    <div class="col-lg-5">
-        <div class="content-card">
-            <h5 class="fw-bold mb-4"><i class="fa-solid fa-calendar-days me-2 text-primary"></i>@now.Year Public Holidays</h5>
-            @if (!Model.Any())
-            {
-                <div class="text-center text-muted py-4">
-                    <i class="fa-regular fa-calendar-xmark fa-2x mb-2"></i>
-                    <p>No holidays configured yet.</p>
-                </div>
-            }
-            else
-            {
-                <ul class="list-group list-group-flush">
-                @foreach (var h in Model)
-                {
-                    bool isPast = h.Date < DateTime.Today;
-                    bool isToday = h.Date.Date == DateTime.Today;
-                    <li class="list-group-item px-0 py-3 d-flex justify-content-between align-items-center @(isPast ? "text-muted" : "")">
-                        <div>
-                            <div class="fw-semibold">@h.Name</div>
-                            <small class="text-muted">@h.Date.ToString("dddd, dd MMMM yyyy")</small>
-                        </div>
-                        <div class="text-end">
-                            @if (isToday)
-                            {
-                                <span class="badge" style="background:#4070f4">Today</span>
-                            }
-                            else if (isPast)
-                            {
-                                <span class="badge badge-cancelled">Past</span>
-                            }
-                            else
-                            {
-                                int daysLeft = (int)(h.Date - DateTime.Today).TotalDays;
-                                <span class="badge badge-pending">@daysLeft days</span>
-                            }
-                        </div>
-                    </li>
-                }
-                </ul>
-            }
+<div class="ds-page-header align-items-center">
+    <h1 class="ds-page-title">Holiday<br>Calendar</h1>
+    <div class="d-flex gap-4">
+        <div class="ds-stat-card ds-card-warm-green" style="min-width:140px; height:110px; padding:18px;">
+            <div class="ds-stat-label">Total @now.Year</div>
+            <div class="ds-stat-value" style="font-size:1.8rem;">@Model.Count()</div>
+            <div class="ds-stat-icon-floating"><i class="bi bi-calendar-event"></i></div>
+        </div>
+        <div class="ds-stat-card ds-card-palette-3" style="min-width:140px; height:110px; padding:18px;">
+            <div class="ds-stat-label">Upcoming</div>
+            <div class="ds-stat-value" style="font-size:1.8rem;">@upcomingHolidays.Count</div>
+            <div class="ds-stat-icon-floating"><i class="bi bi-arrow-up-circle"></i></div>
         </div>
     </div>
-    <div class="col-lg-7">
-        <div class="content-card">
-            <h5 class="fw-bold mb-4"><i class="fa-solid fa-info-circle me-2 text-primary"></i>Holiday Policy</h5>
-            <ul class="list-unstyled">
-                <li class="mb-2"><i class="fa-solid fa-check-circle text-success me-2"></i>Public holidays are not counted against your leave balance</li>
-                <li class="mb-2"><i class="fa-solid fa-check-circle text-success me-2"></i>If a public holiday falls within your approved leave, it will not be deducted</li>
-                <li class="mb-2"><i class="fa-solid fa-check-circle text-success me-2"></i>Weekends (Saturday & Sunday) are automatically excluded</li>
-                <li class="mb-2"><i class="fa-solid fa-info-circle text-primary me-2"></i>Contact HR for any queries about the holiday schedule</li>
+</div>
+
+<div class="row g-4">
+    <!-- CALENDAR -->
+    <div class="col-lg-8">
+        <div class="ds-table-container mt-0 p-0 overflow-hidden">
+            <div id="empCalendar" style="padding:20px;"></div>
+        </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="col-lg-4">
+        <!-- Upcoming -->
+        <div class="ds-table-container mt-0 p-4 mb-4">
+            <h6 class="fw-bold mb-3"><i class="bi bi-calendar-check me-2" style="color:#2563eb;"></i>Upcoming Holidays</h6>
+            @if (!upcomingHolidays.Any())
+            {
+                <p class="text-center text-muted small py-3">No upcoming holidays.</p>
+            }
+            @foreach (var h in upcomingHolidays)
+            {
+                var daysLeft = (h.Date - DateTime.Today).Days;
+                var isToday = h.Date.Date == DateTime.Today;
+                <div class="d-flex align-items-center gap-3 mb-3 pb-3 @(h != upcomingHolidays.Last() ? "border-bottom" : "")">
+                    <div class="text-center rounded-3 p-2" style="min-width:48px; background:@(h.IsFloating ? "#fef3c7" : "#dbeafe");">
+                        <div class="fw-bold small text-uppercase" style="font-size:10px; color:@(h.IsFloating ? "#b45309" : "#1d4ed8")">@h.Date.ToString("MMM")</div>
+                        <div class="fw-bold" style="font-size:1.1rem; color:@(h.IsFloating ? "#92400e" : "#1e40af")">@h.Date.Day</div>
+                    </div>
+                    <div class="flex-grow-1 overflow-hidden">
+                        <div class="fw-semibold text-dark small text-truncate">@h.Name</div>
+                        <div class="text-muted" style="font-size:11px;">@h.Date.ToString("dddd, dd MMMM")</div>
+                    </div>
+                    <div class="text-end">
+                        @if (isToday)
+                        {<span class="badge" style="background:#dcfce7; color:#065f46; border-radius:12px; padding:3px 8px; font-size:10px;">Today</span>}
+                        else
+                        {<span class="badge" style="background:#f3f4f6; color:#4b5563; border-radius:12px; padding:3px 8px; font-size:10px;">@daysLeft days</span>}
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Legend & Policy -->
+        <div class="ds-table-container mt-0 p-4">
+            <h6 class="fw-bold mb-3"><i class="bi bi-info-circle me-2 text-primary"></i>Calendar Legend</h6>
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <div style="width:14px;height:14px;border-radius:4px;background:#2563eb;"></div>
+                <span class="small">Public Holiday</span>
+            </div>
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <div style="width:14px;height:14px;border-radius:4px;background:#f59e0b;"></div>
+                <span class="small">Floating Holiday</span>
+            </div>
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <div style="width:14px;height:14px;border-radius:4px;background:#10b981;"></div>
+                <span class="small">Your Approved Leave</span>
+            </div>
+            <hr>
+            <h6 class="fw-bold mb-3"><i class="bi bi-shield-check me-2 text-success"></i>Holiday Policy</h6>
+            <ul class="list-unstyled small text-muted">
+                <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Public holidays are not deducted from leave balance</li>
+                <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Holidays during approved leave are excluded</li>
+                <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Weekends (Sat & Sun) are automatically excluded</li>
+                <li class="mb-2"><i class="bi bi-star text-warning me-2"></i>Floating holidays must be applied for as leave</li>
             </ul>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var cal = new FullCalendar.Calendar(document.getElementById('empCalendar'), {
+                initialView: 'dayGridMonth',
+                headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,dayGridWeek,listMonth' },
+                height: 550,
+                events: function(info, ok, fail) {
+                    fetch(`/Holidays/GetCalendarData?month=${info.start.getMonth()+1}&year=${info.start.getFullYear()}`)
+                        .then(r => r.json()).then(ok).catch(fail);
+                },
+                eventContent: function(arg) {
+                    let el = document.createElement('div');
+                    el.classList.add('fc-event-title-container');
+                    el.innerHTML = `<div class="fc-event-title fw-semibold text-truncate small ms-1">${arg.event.title}</div>`;
+                    return { domNodes: [el] };
+                },
+                dayCellDidMount: function(info) {
+                    if (info.date.getDay() === 0 || info.date.getDay() === 6)
+                        info.el.style.backgroundColor = 'rgba(248,249,250,0.5)';
+                }
+            });
+            cal.render();
+        });
+    </script>
+    <style>
+        .fc-toolbar-title { font-size: 1.1rem !important; font-weight: 700 !important; }
+        .fc-button { border-radius: 20px !important; font-weight: 500; font-size: 0.82rem; border: none !important; padding: 5px 14px !important; }
+        .fc-button-primary { background-color: #f3f4f6 !important; color: #333 !important; }
+        .fc-button-primary:hover { background-color: #e5e7eb !important; }
+        .fc-button-active { background-color: #2563eb !important; color: #fff !important; }
+        .fc-event { margin-top: 2px !important; border-radius: 4px !important; border: none !important; cursor: pointer; transition: transform 0.15s; }
+        .fc-event:hover { transform: scale(1.02); }
+        .fc-daygrid-day-number { font-weight: 600; color: #6b7280; padding: 6px !important; }
+        .fc-day-today .fc-daygrid-day-number { color: #2563eb; }
+        .fc-day-today { background-color: rgba(37, 99, 235, 0.05) !important; }
+    </style>
+}

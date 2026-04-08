@@ -68,6 +68,8 @@ public class UsersController : Controller
         };
         
         var availableRoles = await _roleManager.Roles.Select(r => r.Name).ToListAsync();
+        // Do not expose the Admin role in the standard UI to avoid accidental privilege elevation
+        availableRoles = availableRoles.Where(r => r != Roles.Admin).ToList();
         ViewBag.Roles = availableRoles;
 
         return View(model);
@@ -85,6 +87,16 @@ public class UsersController : Controller
 
         if (ModelState.IsValid)
         {
+            // Prevent assigning Admin via the normal edit UI
+            if (model.Role == Roles.Admin)
+            {
+                ModelState.AddModelError(string.Empty, "Assigning the Admin role via this page is not allowed. Please contact a SuperAdmin.");
+                var roles = await _roleManager.Roles.Select(r => r.Name).ToListAsync();
+                roles = roles.Where(r => r != Roles.Admin).ToList();
+                ViewBag.Roles = roles;
+                return View(model);
+            }
+
             var currentRoles = await _userManager.GetRolesAsync(user);
             await _userManager.RemoveFromRolesAsync(user, currentRoles);
             await _userManager.AddToRoleAsync(user, model.Role);
@@ -187,7 +199,6 @@ public class UsersController : Controller
 
                 return RedirectToAction(nameof(Pending));
             }
-            
             foreach (var error in updateResult.Errors)
             {
                 ModelState.AddModelError(string.Empty, error.Description);
@@ -196,6 +207,58 @@ public class UsersController : Controller
 
         await PopulateReviewViewBags();
         return View(model);
+    }
+
+    // POST: Users/Delete/5
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Delete(string id)
+    {
+        if (string.IsNullOrEmpty(id)) return NotFound();
+
+        var user = await _userManager.FindByIdAsync(id);
+        if (user == null) return NotFound();
+
+        // Prevent self-deletion
+        var current = await _userManager.GetUserAsync(User);
+        if (current != null && current.Id == user.Id)
+        {
+            TempData["Error"] = "You cannot delete your own account.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        // Delete user related records first if cascade delete is not on by default
+        var notifications = await _context.Notifications.Where(n => n.UserId == user.Id).ToListAsync();
+        _context.Notifications.RemoveRange(notifications);
+        
+        var leaveRequests = await _context.LeaveRequests.Where(l => l.RequestingEmployeeId == user.Id).ToListAsync();
+        _context.LeaveRequests.RemoveRange(leaveRequests);
+        
+        var leaveAllocations = await _context.LeaveAllocations.Where(l => l.EmployeeId == user.Id).ToListAsync();
+        _context.LeaveAllocations.RemoveRange(leaveAllocations);
+        
+        await _context.SaveChangesAsync();
+
+        var result = await _userManager.DeleteAsync(user);
+        if (result.Succeeded)
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(user.Email))
+                {
+                    await _emailService.SendEmailAsync(user.Email, "Your account has been deleted", $"<p>Hello {user.FirstName},</p><p>Your account has been permanently deleted by an administrator.</p>");
+                }
+            }
+            catch { }
+
+            TempData["Success"] = "User account deleted successfully.";
+        }
+        else
+        {
+            TempData["Error"] = "Failed to delete user account.";
+        }
+
+        return RedirectToAction(nameof(Index));
     }
 
     // GET: Users/DownloadReport/5
@@ -248,7 +311,10 @@ public class UsersController : Controller
 
     private async Task PopulateReviewViewBags()
     {
-        ViewBag.Roles = await _roleManager.Roles.Select(r => r.Name).ToListAsync();
+        var roles = await _roleManager.Roles.Select(r => r.Name).ToListAsync();
+        // Hide Admin role from the approval dropdown to avoid accidental assignment of full privileges
+        roles = roles.Where(r => r != Roles.Admin).ToList();
+        ViewBag.Roles = roles;
         ViewBag.Departments = await _context.Departments.ToListAsync();
         
         // Find possible managers (users with Manager role)

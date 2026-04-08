@@ -11,9 +11,37 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/dashboard-theme.css" asp-append-version="true" />
+    <!-- Improve typography for manager layout -->
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        /* Make manager sidebar visually match employee/admin (lighter, friendlier) */
+        body.dashboard-body.employee-theme .ds-sidebar {
+            background: var(--ds-accent-soft); 
+            border-right: 1px solid var(--ds-border-light);
+        }
+        body.dashboard-body.employee-theme .ds-logo-icon {
+            background: var(--ds-accent);
+            color: #fff;
+        }
+        body.dashboard-body.employee-theme .ds-nav-link {
+            color: #0f172a; 
+        }
+        body.dashboard-body.employee-theme .ds-nav-link:hover {
+            background: #e6f0ff;
+            color: var(--ds-accent);
+        }
+        body.dashboard-body.employee-theme .ds-nav-link.active {
+            background: linear-gradient(90deg, var(--ds-accent), #1d4ed8);
+            color: #fff;
+            box-shadow: 0 6px 20px rgba(29,78,216,0.16);
+        }
+        .ds-profile-name, .ds-logo-text .brand-name { font-family: 'Sora', sans-serif; }
+        .ds-nav-link span, .ds-nav-link i { font-family: 'DM Sans', sans-serif; }
+        .ds-page-title { font-family: 'Sora', sans-serif; }
+    </style>
     @await RenderSectionAsync("Styles", required: false)
 </head>
-<body class="dashboard-body">
+<body class="dashboard-body employee-theme">
 @{
     var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
     var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
@@ -24,23 +52,13 @@
 <!-- SIDEBAR OVERLAY (mobile) -->
 <div class="ds-sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
-<!-- SIDEBAR (Narrow Rail) -->
+<!-- SIDEBAR -->
 <aside class="ds-sidebar" id="mainSidebar">
     <div class="ds-sidebar-logo">
         <div class="ds-logo-icon">LP</div>
         <div class="ds-logo-text">
-            <div class="brand-name">LEAVE PRO Manager</div>
+            <div class="brand-name">LeavePro Manager</div>
         </div>
-    </div>
-
-    <!-- Mode Toggle (only shown when sidebar expanded or on mobile) -->
-    <div class="ds-mode-toggle d-none" id="modeRailToggle">
-        <a class="ds-mode-btn @(isTeamMode ? "team-active" : "inactive")" asp-controller="Manager" asp-action="Dashboard" title="Team Mode">
-            <i class="bi bi-people-fill"></i>
-        </a>
-        <a class="ds-mode-btn @(isPersonalMode ? "personal-active" : "inactive")" asp-controller="Employee" asp-action="Dashboard" title="Personal Mode">
-            <i class="bi bi-person-fill"></i>
-        </a>
     </div>
 
     <nav class="ds-sidebar-nav">
@@ -61,27 +79,38 @@
             <a class="ds-nav-link @(currentAction == "MyTeam" ? "active" : "")" asp-controller="Manager" asp-action="MyTeam" title="Team Portal">
                 <i class="bi bi-person-workspace"></i><span>Team Portal</span>
             </a>
+            <a class="ds-nav-link @(currentAction == "Holidays" && currentController == "Manager" ? "active" : "")" asp-controller="Manager" asp-action="Holidays" title="Holidays">
+                <i class="bi bi-calendar-heart"></i><span>Holidays</span>
+            </a>
         }
         else
         {
-            <a class="ds-nav-link @(currentAction == "Dashboard" && currentController == "Employee" ? "active" : "")" asp-controller="Employee" asp-action="Dashboard" title="My Dashboard">
+            <a class="ds-nav-link @(currentAction == "Dashboard" && currentController == "Employee" ? "active" : "")" href="@Url.Action("Dashboard","Employee")" title="My Dashboard">
                 <i class="bi bi-grid-fill"></i><span>My Dashboard</span>
             </a>
-            <a class="ds-nav-link @(currentAction == "Apply" ? "active" : "")" asp-controller="Employee" asp-action="Apply" title="Apply Leave">
+            <a class="ds-nav-link @(currentAction == "Apply" ? "active" : "")" href="@Url.Action("Apply","Employee")" title="Apply Leave">
                 <i class="bi bi-plus-circle-fill"></i><span>Apply Leave</span>
             </a>
-            <a class="ds-nav-link @(currentAction == "History" && currentController == "Employee" ? "active" : "")" asp-controller="Employee" asp-action="History" title="My History">
+            <a class="ds-nav-link @(currentAction == "History" && currentController == "Employee" ? "active" : "")" href="@Url.Action("History","Employee")" title="My History">
                 <i class="bi bi-clock-history"></i><span>My History</span>
             </a>
+            <a class="ds-nav-link @(currentAction == "Balance" && currentController == "Employee" ? "active" : "")" href="@Url.Action("Balance","Employee")" title="Leave Balance">
+                <i class="bi bi-wallet2"></i><span>Leave Balance</span>
+            </a>
+            <a class="ds-nav-link @(currentAction == "Holidays" && currentController == "Employee" ? "active" : "")" href="@Url.Action("Holidays","Employee")" title="Holidays">
+                <i class="bi bi-calendar-event"></i><span>Holidays</span>
+            </a>
+            <a class="ds-nav-link @(currentAction == "LeavePolicies" && currentController == "Employee" ? "active" : "")" href="@Url.Action("LeavePolicies","Employee")" title="Leave Policies">
+                <i class="bi bi-file-earmark-text"></i><span>Leave Policies</span>
+            </a>
         }
-        
-        <div class="ds-sidebar-divider"></div>
-        <a class="ds-nav-link @(currentAction == "Dashboard" && isTeamMode ? "" : "inactive")" asp-controller="Employee" asp-action="Dashboard" title="Switch Mode">
-            <i class="bi bi-arrow-left-right"></i><span>Switch Mode</span>
-        </a>
     </nav>
 
     <div class="ds-sidebar-footer">
+        <a class="ds-nav-link @(currentAction == "Profile" ? "active" : "")" href="@Url.Action("Profile","Employee")" title="Profile">
+            <i class="bi bi-person-circle"></i>
+            <span>Profile</span>
+        </a>
         <form class="w-100" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
             <button type="submit" class="ds-nav-link border-0 bg-transparent w-100" title="Logout">
                 <i class="bi bi-box-arrow-right"></i>
@@ -93,16 +122,36 @@
 
 <!-- TOPBAR -->
 <div class="ds-topbar">
-    @if (isPersonalMode) { <span class="badge rounded-pill bg-primary me-2">Personal Mode</span> }
-    else { <span class="badge rounded-pill bg-success me-2">Team Mode</span> }
-    
-    <div class="ds-profile-trigger">
-        <div class="text-end d-none d-sm-block">
-            <div class="ds-profile-name">@User.Identity?.Name</div>
-            <div class="ds-profile-role">Manager</div>
-        </div>
-        <div class="ds-avatar">
-            <img src="https://ui-avatars.com/api/?name=@(User.Identity?.Name)&background=3b82f6&color=fff" alt="User">
+    <button class="btn btn-link p-0 text-dark fs-4" onclick="toggleSidebar()" title="Toggle Menu">
+        <i class="bi bi-list"></i>
+    </button>
+
+    <div class="ms-auto d-flex align-items-center gap-4">
+        @{
+            var u = await UserManager.GetUserAsync(User);
+            var fullName = u != null ? $"{u.FirstName} {u.LastName}" : User.Identity?.Name;
+        }
+        @if (isTeamMode)
+        {
+            <a class="btn btn-primary btn-sm rounded-pill px-4 fw-bold d-none d-md-flex align-items-center gap-2 shadow-sm" style="background: linear-gradient(135deg, #4f46e5, #3b82f6); border: none;" href="@Url.Action("Dashboard","Employee")">
+                <i class="bi bi-person-fill"></i> Personal Mode
+            </a>
+        }
+        else
+        {
+            <a class="btn btn-success btn-sm rounded-pill px-4 fw-bold d-none d-md-flex align-items-center gap-2 shadow-sm" style="background: linear-gradient(135deg, #10b981, #059669); border: none;" href="@Url.Action("Dashboard","Manager")">
+                <i class="bi bi-people-fill"></i> Team Mode
+            </a>
+        }
+
+        <div class="ds-profile-trigger">
+            <div class="text-end d-none d-sm-block">
+                <div class="ds-profile-name">@fullName</div>
+                <div class="ds-profile-role">Manager</div>
+            </div>
+            <div class="ds-avatar shadow-sm border ms-2">
+                <img src="https://ui-avatars.com/api/?name=@(u?.FirstName ?? "U")&background=16a34a&color=fff" alt="User">
+            </div>
         </div>
     </div>
 </div>
@@ -118,8 +167,18 @@
 <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     function toggleSidebar() {
-        $('#mainSidebar').toggleClass('show');
-        $('#sidebarOverlay').toggleClass('show');
+        const sidebar = $('#mainSidebar');
+        const main = $('.ds-main');
+        const topbar = $('.ds-topbar');
+        
+        sidebar.toggleClass('sidebar-closed');
+        main.toggleClass('content-full');
+        topbar.toggleClass('content-full');
+        
+        if ($(window).width() < 992) {
+            sidebar.toggleClass('show');
+            $('#sidebarOverlay').toggleClass('show');
+        }
     }
 </script>
 @await RenderSectionAsync("Scripts", required: false)
