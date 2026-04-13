@@ -20,7 +20,44 @@ public class AdminController : Controller
         _userManager = userManager;
     }
 
-    // ─── PROFILE ────────────────────────────────────────────────────────────
+    // ─── SETTINGS & PROFILE ──────────────────────────────────────────────────
+    public async Task<IActionResult> Settings()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null) return NotFound();
+
+        await _context.Entry(user).Reference(u => u.Department).LoadAsync();
+        
+        ViewBag.User = user;
+        return View(new ChangePasswordViewModel());
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Settings(ChangePasswordViewModel model)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null) return NotFound();
+        
+        await _context.Entry(user).Reference(u => u.Department).LoadAsync();
+        ViewBag.User = user;
+
+        if (!ModelState.IsValid) return View(model);
+
+        var changePasswordResult = await _userManager.ChangePasswordAsync(user, model.OldPassword, model.NewPassword);
+        if (!changePasswordResult.Succeeded)
+        {
+            foreach (var error in changePasswordResult.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
+            }
+            return View(model);
+        }
+
+        TempData["Success"] = "Your password has been changed successfully.";
+        return RedirectToAction(nameof(Settings));
+    }
+
     public async Task<IActionResult> Profile()
     {
         var user = await _userManager.GetUserAsync(User);
@@ -34,30 +71,14 @@ public class AdminController : Controller
     [HttpGet]
     public IActionResult ChangePassword()
     {
-        return View();
+        return RedirectToAction(nameof(Settings));
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
     {
-        if (!ModelState.IsValid) return View(model);
-
-        var user = await _userManager.GetUserAsync(User);
-        if (user == null) return RedirectToAction("Login", "Account", new { area = "Identity" });
-
-        var changePasswordResult = await _userManager.ChangePasswordAsync(user, model.OldPassword, model.NewPassword);
-        if (!changePasswordResult.Succeeded)
-        {
-            foreach (var error in changePasswordResult.Errors)
-            {
-                ModelState.AddModelError(string.Empty, error.Description);
-            }
-            return View(model);
-        }
-
-        TempData["Success"] = "Your password has been changed.";
-        return RedirectToAction(nameof(Profile));
+        return await Settings(model);
     }
 
     // ─── DASHBOARD ──────────────────────────────────────────────────────────
@@ -82,7 +103,7 @@ public class AdminController : Controller
 
         var model = new AdminDashboardViewModel
         {
-            TotalEmployees        = employees.Count,
+            TotalEmployees        = employees.Count + managers.Count,
             TotalManagers         = managers.Count,
             ActiveLeaveRequests   = await _context.LeaveRequests.CountAsync(r => !r.Cancelled && r.Approved == true),
             PendingApprovals      = await _context.LeaveRequests.CountAsync(r => r.Approved == null && !r.Cancelled),
@@ -227,9 +248,15 @@ public class AdminController : Controller
     }
 
     // ─── LEAVE HISTORY (CONSOLIDATED) ───────────────────────────────────────
-    public async Task<IActionResult> LeaveHistory()
+    public async Task<IActionResult> LeaveHistory(int? departmentId, DateTime? date, string? role, string? searchName, int? leaveTypeId)
     {
         var today = DateTime.Today;
+
+        ViewBag.CurrentDept = departmentId;
+        ViewBag.CurrentDate = date?.ToString("yyyy-MM-dd");
+        ViewBag.CurrentRole = role;
+        ViewBag.CurrentSearch = searchName;
+        ViewBag.CurrentLeaveType = leaveTypeId;
 
         // Today's Leaves
         var todayLeaves = await GetMappedLeaves("Today");
@@ -242,11 +269,34 @@ public class AdminController : Controller
             .Include(d => d.SubDepartments)
             .ToListAsync();
 
-        var deptStats = await _context.Departments
-            .Select(dept => new DepartmentLeaveStatsViewModel
+        var allUsers = await _userManager.Users.ToListAsync();
+        var nonAdminUsers = new List<ApplicationUser>();
+        foreach(var u in allUsers)
+        {
+            if (!await _userManager.IsInRoleAsync(u, Roles.Admin))
+            {
+                nonAdminUsers.Add(u);
+            }
+        }
+
+        var deptStats = new List<DepartmentLeaveStatsViewModel>();
+        foreach(var dept in departments)
+        {
+            // Count users in this department who are NOT admins
+            var deptUsers = allUsers.Where(u => u.DepartmentId == dept.Id).ToList();
+            int nonAdminCount = 0;
+            foreach(var u in deptUsers)
+            {
+                if (!await _userManager.IsInRoleAsync(u, Roles.Admin))
+                {
+                    nonAdminCount++;
+                }
+            }
+
+            deptStats.Add(new DepartmentLeaveStatsViewModel
             {
                 DepartmentName = dept.Name,
-                TotalEmployees = _context.Users.Count(u => u.DepartmentId == dept.Id),
+                TotalEmployees = nonAdminCount,
                 OnLeaveToday = _context.LeaveRequests.Count(r => 
                     r.RequestingEmployee!.DepartmentId == dept.Id 
                     && r.Approved == true && !r.Cancelled 
@@ -254,45 +304,74 @@ public class AdminController : Controller
                 PendingApprovals = _context.LeaveRequests.Count(r => 
                     r.RequestingEmployee!.DepartmentId == dept.Id 
                     && r.Approved == null && !r.Cancelled)
-            })
-            .OrderBy(d => d.DepartmentName)
-            .ToListAsync();
-
-        // Employee Stats
-        var allUsers = await _userManager.Users.ToListAsync();
-        var empStats = new List<EmployeeLeaveStatsViewModel>();
-        foreach (var user in allUsers)
-        {
-            var roles = await _userManager.GetRolesAsync(user);
-            var role = roles.FirstOrDefault() ?? "No Role";
-
-            var totalLeaves = await _context.LeaveRequests
-                .Where(r => r.RequestingEmployeeId == user.Id && r.Approved == true && !r.Cancelled)
-                .CountAsync();
-
-            var pending = await _context.LeaveRequests
-                .Where(r => r.RequestingEmployeeId == user.Id && r.Approved == null && !r.Cancelled)
-                .CountAsync();
-
-            empStats.Add(new EmployeeLeaveStatsViewModel
-            {
-                EmployeeName = $"{user.FirstName} {user.LastName}",
-                Role = role,
-                TotalLeavesTaken = totalLeaves,
-                PendingRequests = pending
             });
         }
+        deptStats = deptStats.OrderBy(d => d.DepartmentName).ToList();
+        
+        
+        var allLeavesQuery = _context.LeaveRequests
+            .Include(r => r.LeaveType)
+            .Include(r => r.RequestingEmployee)
+            .Include(r => r.Reviewer)
+            .AsQueryable();
+
+        if (departmentId.HasValue)
+            allLeavesQuery = allLeavesQuery.Where(r => r.RequestingEmployee!.DepartmentId == departmentId);
+
+        if (date.HasValue)
+            allLeavesQuery = allLeavesQuery.Where(r => r.StartDate <= date && r.EndDate >= date);
+
+        if (leaveTypeId.HasValue)
+            allLeavesQuery = allLeavesQuery.Where(r => r.LeaveTypeId == leaveTypeId);
+
+        if (!string.IsNullOrEmpty(searchName))
+            allLeavesQuery = allLeavesQuery.Where(r => (r.RequestingEmployee!.FirstName + " " + r.RequestingEmployee.LastName).Contains(searchName));
+
+        var reqLeaves = await allLeavesQuery.OrderByDescending(r => r.DateRequested).ToListAsync();
+        var allLeavesMapped = new List<AdminLeaveRequestViewModel>();
+
+        foreach (var r in reqLeaves)
+        {
+            if (!string.IsNullOrEmpty(role))
+            {
+                var rRoles = await _userManager.GetRolesAsync(r.RequestingEmployee!);
+                var rRole = rRoles.FirstOrDefault() ?? "Employee";
+                if (rRole != role) continue;
+            }
+            
+            allLeavesMapped.Add(new AdminLeaveRequestViewModel
+            {
+                Id             = r.Id,
+                EmployeeId     = r.RequestingEmployeeId,
+                EmployeeName   = $"{r.RequestingEmployee?.FirstName} {r.RequestingEmployee?.LastName}",
+                EmployeeEmail  = r.RequestingEmployee?.Email ?? "",
+                LeaveTypeName  = r.LeaveType?.Name ?? "",
+                StartDate      = r.StartDate,
+                EndDate        = r.EndDate,
+                TotalDays      = (int)(r.EndDate - r.StartDate).TotalDays + 1,
+                Reason         = r.RequestComments,
+                DateRequested  = r.DateRequested,
+                Status         = r.Cancelled ? "Cancelled" : r.Approved == null ? "Pending" : r.Approved == true ? "Approved" : "Rejected",
+                ManagerRemarks = r.ManagerRemarks,
+                ReviewerName   = r.Reviewer != null ? $"{r.Reviewer.FirstName} {r.Reviewer.LastName}" : null,
+                DateActioned   = r.DateActioned,
+                AttachmentPath = r.AttachmentPath,
+                Cancelled      = r.Cancelled
+            });
+        }
+
+        ViewBag.DepartmentsList = departments;
 
         var model = new AdminLeaveHistoryViewModel
         {
             OnLeaveTodayCount = todayLeaves.Count,
             PendingApprovalsCount = pendingLeaves.Count,
-            TotalEmployees = allUsers.Count,
+            TotalEmployees = nonAdminUsers.Count,
             TotalAbsent = todayLeaves.Count,
             TodayLeaves = todayLeaves,
             PendingLeaves = pendingLeaves,
+            AllLeaves = allLeavesMapped,
             DepartmentStats = deptStats,
-            EmployeeStats = empStats,
             LeaveTypes = await _context.LeaveTypes.OrderBy(l => l.Name).ToListAsync()
         };
 
@@ -314,6 +393,36 @@ public class AdminController : Controller
             .OrderByDescending(r => r.DateRequested)
             .ToListAsync();
 
+        // Calculate Balances
+        var balances = new List<LeaveBalanceViewModel>();
+        var year = DateTime.Now.Year;
+        var allocations = await _context.LeaveAllocations
+            .Include(a => a.LeaveType)
+            .Where(a => a.EmployeeId == id && a.Period == year)
+            .ToListAsync();
+        
+        var approvedRequests = await _context.LeaveRequests
+            .Where(r => r.RequestingEmployeeId == id && r.Approved == true && !r.Cancelled && (r.StartDate.Year == year || r.EndDate.Year == year))
+            .ToListAsync();
+
+        foreach (var alloc in allocations)
+        {
+            // Do not show ML (Maternity) and BL (Bereavement) in balance cards as per request
+            if (alloc.LeaveType?.Code == "ML" || alloc.LeaveType?.Code == "BL") continue;
+
+            var used = approvedRequests
+                .Where(r => r.LeaveTypeId == alloc.LeaveTypeId)
+                .Sum(r => (r.EndDate - r.StartDate).Days + 1);
+
+            balances.Add(new LeaveBalanceViewModel
+            {
+                LeaveTypeName = alloc.LeaveType?.Name ?? "Unknown",
+                Allocated = (int)alloc.NumberOfDays,
+                Used = used
+            });
+        }
+
+        ViewBag.Balances = balances;
         ViewBag.Employee = employee;
         return View(leaves);
     }

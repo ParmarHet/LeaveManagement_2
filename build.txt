@@ -1,18 +1,29 @@
-﻿  Determining projects to restore...
+  Determining projects to restore...
 C:\Users\ASUS\OneDrive\Desktop\lms_antigravity\LMS\LMS.csproj : warning NU1603: LMS depends on MySql.EntityFrameworkCore (>= 10.0.1-preview.1) but MySql.EntityFrameworkCore 10.0.1-preview.1 was not found. MySql.EntityFrameworkCore 10.0.1 was resolved instead.
 C:\Users\ASUS\OneDrive\Desktop\lms_antigravity\LMS\LMS.csproj : warning NU1902: Package 'MimeKit' 4.8.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-g7hc-96xr-gvvx
   All projects are up-to-date for restore.
 C:\Users\ASUS\OneDrive\Desktop\lms_antigravity\LMS\LMS.csproj : warning NU1603: LMS depends on MySql.EntityFrameworkCore (>= 10.0.1-preview.1) but MySql.EntityFrameworkCore 10.0.1-preview.1 was not found. MySql.EntityFrameworkCore 10.0.1 was resolved instead.
 C:\Users\ASUS\OneDrive\Desktop\lms_antigravity\LMS\LMS.csproj : warning NU1902: Package 'MimeKit' 4.8.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-g7hc-96xr-gvvx
-  LMS -> C:\Users\ASUS\OneDrive\Desktop\lms_antigravity\LMS\bin\Debug\net10.0\LMS.dll
+C:\Users\ASUS\OneDrive\Desktop\lms_antigravity\LMS\Views\Admin\EmployeeLeaveHistory.cshtml(15,2): error RZ1006: The if block is missing a closing "}" character.  Make sure you have a matching "}" character for all the "{" characters within this block, and that none of the "}" characters are being interpreted as markup. [C:\Users\ASUS\OneDrive\Desktop\lms_antigravity\LMS\LMS.csproj]
+C:\Users\ASUS\OneDrive\Desktop\lms_antigravity\LMS\obj\Debug\net10.0\Microsoft.CodeAnalysis.Razor.Compiler\Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator\Views_Admin_EmployeeLeaveHistory_cshtml.g.cs(592,87): error CS0116: A namespace cannot directly contain members such as fields, methods or statements [C:\Users\ASUS\OneDrive\Desktop\lms_antigravity\LMS\LMS.csproj]
+C:\Users\ASUS\OneDrive\Desktop\lms_antigravity\LMS\obj\Debug\net10.0\Microsoft.CodeAnalysis.Razor.Compiler\Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator\Views_Admin_EmployeeLeaveHistory_cshtml.g.cs(596,60): error CS0116: A namespace cannot directly contain members such as fields, methods or statements [C:\Users\ASUS\OneDrive\Desktop\lms_antigravity\LMS\LMS.csproj]
+C:\Users\ASUS\OneDrive\Desktop\lms_antigravity\LMS\obj\Debug\net10.0\Microsoft.CodeAnalysis.Razor.Compiler\Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator\Views_Admin_EmployeeLeaveHistory_cshtml.g.cs(600,70): error CS0116: A namespace cannot directly contain members such as fields, methods or statements [C:\Users\ASUS\OneDrive\Desktop\lms_antigravity\LMS\LMS.csproj]
+C:\Users\ASUS\OneDrive\Desktop\lms_antigravity\LMS\obj\Debug\net10.0\Microsoft.CodeAnalysis.Razor.Compiler\Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator\Views_Admin_EmployeeLeaveHistory_cshtml.g.cs(604,71): error CS0116: A namespace cannot directly contain members such as fields, methods or statements [C:\Users\ASUS\OneDrive\Desktop\lms_antigravity\LMS\LMS.csproj]
+C:\Users\ASUS\OneDrive\Desktop\lms_antigravity\LMS\obj\Debug\net10.0\Microsoft.CodeAnalysis.Razor.Compiler\Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator\Views_Admin_EmployeeLeaveHistory_cshtml.g.cs(608,102): error CS0116: A namespace cannot directly contain members such as fields, methods or statements [C:\Users\ASUS\OneDrive\Desktop\lms_antigravity\LMS\LMS.csproj]
 
-Build succeeded.
+Build FAILED.
 
 C:\Users\ASUS\OneDrive\Desktop\lms_antigravity\LMS\LMS.csproj : warning NU1603: LMS depends on MySql.EntityFrameworkCore (>= 10.0.1-preview.1) but MySql.EntityFrameworkCore 10.0.1-preview.1 was not found. MySql.EntityFrameworkCore 10.0.1 was resolved instead.
 C:\Users\ASUS\OneDrive\Desktop\lms_antigravity\LMS\LMS.csproj : warning NU1902: Package 'MimeKit' 4.8.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-g7hc-96xr-gvvx
 C:\Users\ASUS\OneDrive\Desktop\lms_antigravity\LMS\LMS.csproj : warning NU1603: LMS depends on MySql.EntityFrameworkCore (>= 10.0.1-preview.1) but MySql.EntityFrameworkCore 10.0.1-preview.1 was not found. MySql.EntityFrameworkCore 10.0.1 was resolved instead.
 C:\Users\ASUS\OneDrive\Desktop\lms_antigravity\LMS\LMS.csproj : warning NU1902: Package 'MimeKit' 4.8.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-g7hc-96xr-gvvx
+C:\Users\ASUS\OneDrive\Desktop\lms_antigravity\LMS\Views\Admin\EmployeeLeaveHistory.cshtml(15,2): error RZ1006: The if block is missing a closing "}" character.  Make sure you have a matching "}" character for all the "{" characters within this block, and that none of the "}" characters are being interpreted as markup. [C:\Users\ASUS\OneDrive\Desktop\lms_antigravity\LMS\LMS.csproj]
+C:\Users\ASUS\OneDrive\Desktop\lms_antigravity\LMS\obj\Debug\net10.0\Microsoft.CodeAnalysis.Razor.Compiler\Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator\Views_Admin_EmployeeLeaveHistory_cshtml.g.cs(592,87): error CS0116: A namespace cannot directly contain members such as fields, methods or statements [C:\Users\ASUS\OneDrive\Desktop\lms_antigravity\LMS\LMS.csproj]
+C:\Users\ASUS\OneDrive\Desktop\lms_antigravity\LMS\obj\Debug\net10.0\Microsoft.CodeAnalysis.Razor.Compiler\Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator\Views_Admin_EmployeeLeaveHistory_cshtml.g.cs(596,60): error CS0116: A namespace cannot directly contain members such as fields, methods or statements [C:\Users\ASUS\OneDrive\Desktop\lms_antigravity\LMS\LMS.csproj]
+C:\Users\ASUS\OneDrive\Desktop\lms_antigravity\LMS\obj\Debug\net10.0\Microsoft.CodeAnalysis.Razor.Compiler\Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator\Views_Admin_EmployeeLeaveHistory_cshtml.g.cs(600,70): error CS0116: A namespace cannot directly contain members such as fields, methods or statements [C:\Users\ASUS\OneDrive\Desktop\lms_antigravity\LMS\LMS.csproj]
+C:\Users\ASUS\OneDrive\Desktop\lms_antigravity\LMS\obj\Debug\net10.0\Microsoft.CodeAnalysis.Razor.Compiler\Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator\Views_Admin_EmployeeLeaveHistory_cshtml.g.cs(604,71): error CS0116: A namespace cannot directly contain members such as fields, methods or statements [C:\Users\ASUS\OneDrive\Desktop\lms_antigravity\LMS\LMS.csproj]
+C:\Users\ASUS\OneDrive\Desktop\lms_antigravity\LMS\obj\Debug\net10.0\Microsoft.CodeAnalysis.Razor.Compiler\Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator\Views_Admin_EmployeeLeaveHistory_cshtml.g.cs(608,102): error CS0116: A namespace cannot directly contain members such as fields, methods or statements [C:\Users\ASUS\OneDrive\Desktop\lms_antigravity\LMS\LMS.csproj]
     4 Warning(s)
-    0 Error(s)
+    6 Error(s)
 
-Time Elapsed 00:00:05.43
+Time Elapsed 00:00:07.25

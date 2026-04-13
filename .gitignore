@@ -17,3 +17,5 @@ obj/
 *.user
 *.db
 *.log
+# Environment Variables
+.env

@@ -14,6 +14,9 @@ public class UserViewModel
     public string Shift { get; set; } = string.Empty;
     public int? DepartmentId { get; set; }
     public string? ManagerId { get; set; }
-    public string Status { get; set; } = string.Empty;
+    public string? DepartmentName { get; set; }
+    public DateTime DateJoined { get; set; }
     public bool IsActive { get; set; }
+    public string Status { get; set; } = string.Empty;
+    public List<LeaveBalanceViewModel> Balances { get; set; } = new();
 }

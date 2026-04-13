@@ -50,6 +50,7 @@ public class AdminLeaveHistoryViewModel
 
     public List<AdminLeaveRequestViewModel> TodayLeaves { get; set; } = new();
     public List<AdminLeaveRequestViewModel> PendingLeaves { get; set; } = new();
+    public List<AdminLeaveRequestViewModel> AllLeaves { get; set; } = new();
     public List<DepartmentLeaveStatsViewModel> DepartmentStats { get; set; } = new();
     public List<EmployeeLeaveStatsViewModel> EmployeeStats { get; set; } = new();
     public List<LeaveType> LeaveTypes { get; set; } = new();

@@ -3,6 +3,9 @@ using Microsoft.EntityFrameworkCore;
 using LMS.Data;
 using LMS.Models;
 using LMS.Services;
+using dotenv.net;
+
+DotEnv.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -65,4 +68,7 @@ catch (Exception ex)
     logger.LogError(ex, "An error occurred seeding the DB.");
 }
 
-app.Run();
+// Bind to the port provided by the environment (Railway provides PORT).
+// Fall back to 8080 when not provided so it runs locally without extra config.
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+app.Run($"http://0.0.0.0:{port}");

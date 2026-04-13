@@ -18,6 +18,76 @@
     </div>
 </div>
 
+<div class="card border-0 shadow-sm rounded-4 mb-4 p-3 bg-white">
+    <form method="get" asp-action="Index">
+        <div class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small text-muted fw-bold">Search</label>
+                <input type="text" name="search" class="form-control form-control-sm" placeholder="Name or Email" value="@ViewBag.CurrentSearch" />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small text-muted fw-bold">Department</label>
+                <select name="departmentId" class="form-select form-select-sm">
+                    <option value="">All Departments</option>
+                    @if (ViewBag.Departments != null)
+                    {
+                        foreach (var d in ViewBag.Departments)
+                        {
+                            if (ViewBag.CurrentDept != null && ViewBag.CurrentDept == d.Id)
+                            {
+                                <option value="@d.Id" selected>@d.Name</option>
+                            }
+                            else
+                            {
+                                <option value="@d.Id">@d.Name</option>
+                            }
+                        }
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small text-muted fw-bold">Role</label>
+                <select name="role" class="form-select form-select-sm">
+                    <option value="">All Roles</option>
+                    @if (ViewBag.Roles != null)
+                    {
+                        foreach (var r in ViewBag.Roles)
+                        {
+                            if (ViewBag.CurrentRole != null && ViewBag.CurrentRole == r)
+                            {
+                                <option value="@r" selected>@r</option>
+                            }
+                            else
+                            {
+                                <option value="@r">@r</option>
+                            }
+                        }
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small text-muted fw-bold">Sort By</label>
+                <select name="sortBy" class="form-select form-select-sm">
+                    @if (ViewBag.CurrentSort == "name")
+                    {
+                        <option value="latest">Latest Added</option>
+                        <option value="name" selected>Name</option>
+                    }
+                    else
+                    {
+                        <option value="latest" selected>Latest Added</option>
+                        <option value="name">Name</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-sm btn-primary px-3"><i class="bi bi-filter"></i> Apply</button>
+                <a asp-action="Index" class="btn btn-sm btn-light px-3 border">Clear</a>
+            </div>
+        </div>
+    </form>
+</div>
+
 <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
@@ -25,7 +95,6 @@
                 <tr>
                     <th class="ps-4 py-3 text-muted fw-bold small text-uppercase" style="letter-spacing: 0.5px;">Employee Profile</th>
                     <th class="py-3 text-muted fw-bold small text-uppercase" style="letter-spacing: 0.5px;">Designation / Role</th>
-                    <th class="py-3 text-muted fw-bold small text-uppercase" style="letter-spacing: 0.5px;">Contact Info</th>
                     <th class="py-3 text-muted fw-bold small text-uppercase text-end pe-4" style="letter-spacing: 0.5px;">Management</th>
                 </tr>
             </thead>
@@ -39,6 +108,7 @@
                                 </div>
                                 <div>
                                     <div class="fw-bold text-dark mb-0" style="font-size: 1rem;">@item.FirstName @item.LastName</div>
+                                    <div class="small text-muted"><i class="bi bi-envelope me-1"></i>@item.Email</div>
                                 </div>
                             </div>
                         </td>
@@ -50,45 +120,108 @@
                                     _ => "badge-employee"
                                 };
                             }
-                            <span class="badge @roleClass">@item.Role</span>
+                            <span class="badge @roleClass mb-1 d-inline-block">@item.Role</span>
+                            <div class="small fw-medium text-muted">@item.DepartmentName</div>
                         </td>
-                        <td>
-                            <div class="d-flex flex-column">
-                                <span class="small text-dark fw-medium"><i class="bi bi-envelope me-1 text-muted"></i>@item.Email</span>
-                            </div>
-                        </td>
+
                         <td class="text-end pe-4">
-                            <div class="dropdown">
-                                <button class="btn btn-light btn-sm rounded-pill px-3 dropdown-toggle border" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    Options
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 py-2" style="border-radius: 12px; font-size: 0.88rem;">
-                                    <li>
-                                        <a class="dropdown-item py-2" asp-controller="LeaveAllocations" asp-action="Details" asp-route-id="@item.Id">
-                                            <i class="bi bi-calendar-check me-2 text-primary"></i> Manage Allocations
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item py-2" asp-action="Edit" asp-route-id="@item.Id">
-                                            <i class="bi bi-shield-lock me-2 text-warning"></i> Change Privileges
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item py-2" asp-controller="Users" asp-action="DownloadReport" asp-route-id="@item.Id">
-                                            <i class="bi bi-file-earmark-arrow-down me-2 text-success"></i> Download Monthly Report
-                                        </a>
-                                    </li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li>
-                                        <form asp-action="Delete" method="post" asp-route-id="@item.Id" class="m-0">
-                                            @Html.AntiForgeryToken()
-                                            <button type="submit" class="dropdown-item py-2 text-danger" onclick="return confirm('Are you sure you want to permanently delete this account?');">
-                                                <i class="bi bi-person-x me-2"></i> Delete Account
+                            @if (item.Role != "Admin")
+                            {
+                                <div class="dropdown">
+                                    <button class="btn btn-light btn-sm rounded-pill px-3 dropdown-toggle border" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Options
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 py-2" style="border-radius: 12px; font-size: 0.88rem;">
+                                        <li>
+                                            <a class="dropdown-item py-2" asp-controller="Admin" asp-action="EmployeeLeaveHistory" asp-route-id="@item.Id">
+                                                <i class="bi bi-clock-history me-2 text-info"></i> View Leave History
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item py-2" asp-controller="LeaveAllocations" asp-action="Details" asp-route-id="@item.Id">
+                                                <i class="bi bi-calendar-check me-2 text-primary"></i> Manage Allocations
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item py-2" asp-action="Edit" asp-route-id="@item.Id">
+                                                <i class="bi bi-shield-lock me-2 text-warning"></i> Change Privileges
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <button type="button" class="dropdown-item py-2" data-bs-toggle="modal" data-bs-target="#downloadModal-@item.Id">
+                                                <i class="bi bi-file-earmark-arrow-down me-2 text-success"></i> Download Report
                                             </button>
-                                        </form>
-                                    </li>
-                                </ul>
-                            </div>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <form asp-action="Delete" method="post" asp-route-id="@item.Id" class="m-0">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="dropdown-item py-2 text-danger" onclick="return confirm('Are you sure you want to permanently delete this account?');">
+                                                    <i class="bi bi-person-x me-2"></i> Delete Account
+                                                </button>
+                                            </form>
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <!-- Download Modal -->
+                                <div class="modal fade text-start" id="downloadModal-@item.Id" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content border-0 rounded-4 shadow">
+                                            <div class="modal-header border-0 pb-0">
+                                                <h5 class="modal-title fw-bold">Download Report</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <form asp-controller="Users" asp-action="DownloadReport" method="get">
+                                                <input type="hidden" name="id" value="@item.Id" />
+                                                <div class="modal-body">
+                                                    <p class="small text-muted mb-3">Select the month and year to generate the attendance report for @item.FirstName.</p>
+                                                    <div class="row g-2">
+                                                        <div class="col-6">
+                                                            <select name="month" class="form-select">
+                                                                @for (int i = 1; i <= 12; i++)
+                                                                {
+                                                                    if (i == DateTime.Today.Month)
+                                                                    {
+                                                                        <option value="@i" selected>@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(i)</option>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <option value="@i">@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(i)</option>
+                                                                    }
+                                                                }
+                                                            </select>
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <select name="year" class="form-select">
+                                                                @for (int i = Math.Max(2023, DateTime.Today.Year - 5); i <= DateTime.Today.Year; i++)
+                                                                {
+                                                                    if (i == DateTime.Today.Year)
+                                                                    {
+                                                                        <option value="@i" selected>@i</option>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <option value="@i">@i</option>
+                                                                    }
+                                                                }
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer border-0 pt-0">
+                                                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                                                    <button type="submit" class="btn btn-success rounded-pill px-4"><i class="bi bi-download me-2"></i> Download</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <span class="badge bg-soft-secondary text-muted px-3 py-2 rounded-pill small">System Admin</span>
+                            }
                         </td>
                     </tr>
                 }
