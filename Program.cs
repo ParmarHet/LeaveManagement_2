@@ -3,6 +3,9 @@ using Microsoft.EntityFrameworkCore;
 using LMS.Data;
 using LMS.Models;
 using LMS.Services;
+using dotenv.net;
+
+DotEnv.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 

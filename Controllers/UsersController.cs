@@ -28,22 +28,95 @@ public class UsersController : Controller
     }
 
     // GET: Users
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string? search, int? departmentId, string? role, string? sortBy)
     {
-        var users = await _userManager.Users.ToListAsync();
+        ViewBag.Departments = await _context.Departments.ToListAsync();
+        ViewBag.Roles = await _roleManager.Roles.Select(r => r.Name).ToListAsync();
+        ViewBag.CurrentSearch = search;
+        ViewBag.CurrentDept = departmentId;
+        ViewBag.CurrentRole = role;
+        ViewBag.CurrentSort = sortBy;
+
+        var query = _userManager.Users.Include(u => u.Department).AsQueryable();
+
+        // Filtering
+        if (!string.IsNullOrEmpty(search))
+        {
+            query = query.Where(u => (u.FirstName + " " + u.LastName).Contains(search) 
+                                || u.Email.Contains(search) 
+                                || u.EmployeeCode.Contains(search));
+        }
+
+        if (departmentId.HasValue)
+        {
+            query = query.Where(u => u.DepartmentId == departmentId);
+        }
+
+        var users = await query.ToListAsync();
         var userViewModels = new List<UserViewModel>();
+
+        var year = DateTime.Now.Year;
+        var allAllocations = await _context.LeaveAllocations.Include(a => a.LeaveType)
+            .Where(a => a.Period == year).ToListAsync();
+        var allApprovedRequests = await _context.LeaveRequests
+            .Where(r => r.Approved == true && !r.Cancelled && (r.StartDate.Year == year || r.EndDate.Year == year))
+            .ToListAsync();
 
         foreach (var user in users)
         {
             var userRoles = await _userManager.GetRolesAsync(user);
-            userViewModels.Add(new UserViewModel
+            
+            // Filter by role in-memory (easier and works for small-medium lists)
+            if (!string.IsNullOrEmpty(role) && !userRoles.Contains(role))
+                continue;
+
+            var model = new UserViewModel
             {
                 Id = user.Id,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 Email = user.Email ?? string.Empty,
-                Role = userRoles.FirstOrDefault() ?? "None"
-            });
+                EmployeeCode = user.EmployeeCode,
+                DepartmentName = user.Department?.Name ?? "N/A",
+                DateJoined = user.DateJoined,
+                Role = userRoles.FirstOrDefault() ?? "None",
+                IsActive = user.IsActive
+            };
+
+            // Calculate Balances
+            var userAllocations = allAllocations.Where(a => a.EmployeeId == user.Id).ToList();
+            foreach (var alloc in userAllocations)
+            {
+                // Skip ML and BL in summary balances as per request
+                if (alloc.LeaveType?.Code == "ML" || alloc.LeaveType?.Code == "BL") continue;
+
+                var used = allApprovedRequests
+                    .Where(r => r.RequestingEmployeeId == user.Id && r.LeaveTypeId == alloc.LeaveTypeId)
+                    .Sum(r => (r.EndDate - r.StartDate).Days + 1);
+
+                model.Balances.Add(new LeaveBalanceViewModel
+                {
+                    LeaveTypeName = alloc.LeaveType?.Name ?? "Unknown",
+                    Allocated = (int)alloc.NumberOfDays,
+                    Used = used
+                });
+            }
+
+            userViewModels.Add(model);
+        }
+
+        // Sorting
+        switch (sortBy)
+        {
+            case "latest":
+                userViewModels = userViewModels.OrderByDescending(u => u.DateJoined).ToList();
+                break;
+            case "name":
+                userViewModels = userViewModels.OrderBy(u => u.FirstName).ToList();
+                break;
+            default:
+                userViewModels = userViewModels.OrderByDescending(u => u.DateJoined).ToList();
+                break;
         }
 
         return View(userViewModels);
@@ -262,17 +335,22 @@ public class UsersController : Controller
     }
 
     // GET: Users/DownloadReport/5
-    public async Task<IActionResult> DownloadReport(string id)
+    public async Task<IActionResult> DownloadReport(string id, int? month, int? year)
     {
         if (id == null) return NotFound();
 
         var user = await _userManager.FindByIdAsync(id);
         if (user == null) return NotFound();
 
-        var today = DateTime.Today;
-        var firstDayOfMonth = new DateTime(today.Year, today.Month, 1);
+        var targetMonth = month ?? DateTime.Today.Month;
+        var targetYear = year ?? DateTime.Today.Year;
+        
+        var firstDayOfMonth = new DateTime(targetYear, targetMonth, 1);
         var lastDayOfMonth = firstDayOfMonth.AddMonths(1).AddDays(-1);
-        if (lastDayOfMonth > today) lastDayOfMonth = today;
+        
+        var today = DateTime.Today;
+        if (lastDayOfMonth > today && today.Month == targetMonth && today.Year == targetYear) 
+            lastDayOfMonth = today;
 
         int totalDaysInMonthSoFar = (lastDayOfMonth - firstDayOfMonth).Days + 1;
         
@@ -303,10 +381,11 @@ public class UsersController : Controller
 
         var csv = new System.Text.StringBuilder();
         csv.AppendLine("Employee Name,Month,Leave Taken,Days Present,Week Offs");
-        csv.AppendLine($"{user.FirstName} {user.LastName},{today:MMM yyyy},{leaveTaken},{daysPresent},{weekOffs}");
+        var monthName = new DateTime(targetYear, targetMonth, 1).ToString("MMM yyyy");
+        csv.AppendLine($"{user.FirstName} {user.LastName},{monthName},{leaveTaken},{daysPresent},{weekOffs}");
 
         byte[] buffer = System.Text.Encoding.UTF8.GetBytes(csv.ToString());
-        return File(buffer, "text/csv", $"Report_{user.FirstName}_{user.LastName}_{today:MMM_yyyy}.csv");
+        return File(buffer, "text/csv", $"Report_{user.FirstName}_{user.LastName}_{monthName.Replace(" ", "_")}.csv");
     }
 
     private async Task PopulateReviewViewBags()

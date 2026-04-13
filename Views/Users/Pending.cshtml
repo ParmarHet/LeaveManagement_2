@@ -62,9 +62,16 @@ else
                                 <div class="badge bg-light text-dark border mb-1">Code: @(item.EmployeeCode ?? "Pending")</div>
                             </td>
                             <td class="text-end pe-4">
-                                <a asp-action="Review" asp-route-id="@item.Id" class="btn btn-primary btn-sm rounded-pill px-4 shadow-sm">
-                                    Review & Approve <i class="bi bi-chevron-right ms-1"></i>
-                                </a>
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a asp-action="Review" asp-route-id="@item.Id" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm">
+                                        Review <i class="bi bi-chevron-right ms-1"></i>
+                                    </a>
+                                    <form asp-action="Reject" asp-route-id="@item.Id" method="post" onsubmit="return confirm('Are you sure you want to reject this registration?');">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3">
+                                            <i class="bi bi-x-circle me-1"></i> Reject
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     }

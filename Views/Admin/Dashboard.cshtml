@@ -9,25 +9,25 @@
     
     <div class="d-flex gap-4">
         <!-- Success/Total Card -->
-        <div class="ds-stat-card ds-card-green" style="background-color: #e0f2fe; color: #0284c7;">
+        <a asp-controller="Users" asp-action="Index" class="text-decoration-none ds-stat-card ds-card-green" style="background-color: #e0f2fe; color: #0284c7; display: block; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='none'">
             <div class="ds-stat-label" style="color: #0284c7;">Total Employees</div>
             <div class="ds-stat-value" style="color: #0369a1;">@Model.TotalEmployees</div>
             <div class="ds-stat-icon-floating"><i class="bi bi-people-fill"></i></div>
-        </div>
+        </a>
 
         <!-- Info/Active Card -->
-        <div class="ds-stat-card ds-card-gray" style="background-color: #fce7f3; color: #db2777;">
-            <div class="ds-stat-label" style="color: #db2777;">Active Managers</div>
-            <div class="ds-stat-value" style="color: #be185d;">@Model.TotalManagers</div>
-            <div class="ds-stat-icon-floating"><i class="bi bi-person-badge-fill"></i></div>
-        </div>
+        <a href="#todaysLeavesTable" class="text-decoration-none ds-stat-card ds-card-gray" style="background-color: #fce7f3; color: #db2777; display: block; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='none'">
+            <div class="ds-stat-label" style="color: #db2777;">On Leave Today</div>
+            <div class="ds-stat-value" style="color: #be185d;">@Model.EmployeesOnLeaveToday</div>
+            <div class="ds-stat-icon-floating"><i class="bi bi-calendar2-x"></i></div>
+        </a>
 
         <!-- Warning/Pending Card -->
-        <div class="ds-stat-card ds-card-amber" style="background-color: #fef9c3; color: #ca8a04;">
+        <a asp-controller="Admin" asp-action="PendingApprovals" class="text-decoration-none ds-stat-card ds-card-amber" style="background-color: #fef9c3; color: #ca8a04; display: block; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='none'">
             <div class="ds-stat-label" style="color: #ca8a04;">Pending Action</div>
             <div class="ds-stat-value" style="color: #a16207;">@Model.PendingApprovals</div>
             <div class="ds-stat-icon-floating"><i class="bi bi-hourglass-split"></i></div>
-        </div>
+        </a>
     </div>
 </div>
 
@@ -50,7 +50,7 @@
     </div>
 </div>
 
-<div class="ds-table-container">
+<div class="ds-table-container" id="todaysLeavesTable">
     <table class="ds-table">
         <thead>
             <tr>

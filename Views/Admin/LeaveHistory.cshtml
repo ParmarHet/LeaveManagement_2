@@ -64,7 +64,7 @@
         <button class="nav-link" id="dept-tab" data-bs-toggle="pill" data-bs-target="#dept" type="button">Department Wise Details</button>
     </li>
     <li class="nav-item">
-        <button class="nav-link" id="stats-tab" data-bs-toggle="pill" data-bs-target="#stats" type="button">Employee/Manager Statistics</button>
+        <button class="nav-link" id="all-tab" data-bs-toggle="pill" data-bs-target="#all" type="button">All Leaves History</button>
     </li>
 </ul>
 
@@ -179,30 +179,121 @@
         </div>
     </div>
 
-    <!-- Employee Statistics -->
-    <div class="tab-pane fade" id="stats" role="tabpanel">
+    <!-- All Leaves History -->
+    <div class="tab-pane fade" id="all" role="tabpanel">
+        <div class="card border-0 shadow-sm rounded-4 mb-4 p-3 bg-white">
+            <form method="get" asp-action="LeaveHistory">
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label small text-muted fw-bold">Search</label>
+                        <input type="text" name="searchName" class="form-control form-control-sm" placeholder="Employee Name" value="@ViewBag.CurrentSearch" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-muted fw-bold">Department</label>
+                        <select name="departmentId" class="form-select form-select-sm">
+                            <option value="">All Departments</option>
+                            @if (ViewBag.DepartmentsList != null)
+                            {
+                                foreach (var d in (IEnumerable<LMS.Models.Department>)ViewBag.DepartmentsList)
+                                {
+                                    if (ViewBag.CurrentDept != null && ViewBag.CurrentDept == d.Id)
+                                    {
+                                        <option value="@d.Id" selected>@d.Name</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@d.Id">@d.Name</option>
+                                    }
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-muted fw-bold">Leave Type</label>
+                        <select name="leaveTypeId" class="form-select form-select-sm">
+                            <option value="">All Types</option>
+                            @if (Model.LeaveTypes != null)
+                            {
+                                foreach (var t in Model.LeaveTypes)
+                                {
+                                    if (ViewBag.CurrentLeaveType != null && ViewBag.CurrentLeaveType == t.Id)
+                                    {
+                                        <option value="@t.Id" selected>@t.Name</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@t.Id">@t.Name</option>
+                                    }
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-muted fw-bold">Role</label>
+                        <select name="role" class="form-select form-select-sm">
+                            <option value="">All Roles</option>
+                            @foreach (var r in new[] { "Admin", "Manager", "Employee" })
+                            {
+                                if (ViewBag.CurrentRole != null && ViewBag.CurrentRole == r)
+                                {
+                                    <option value="@r" selected>@r</option>
+                                }
+                                else
+                                {
+                                    <option value="@r">@r</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-muted fw-bold">Date</label>
+                        <input type="date" name="date" class="form-control form-control-sm" value="@ViewBag.CurrentDate" />
+                    </div>
+                    <div class="col-md-1 d-flex gap-2">
+                        <button type="submit" class="btn btn-sm btn-primary w-100"><i class="bi bi-filter"></i></button>
+                        <a asp-action="LeaveHistory" class="btn btn-sm btn-light border"><i class="bi bi-x-lg"></i></a>
+                    </div>
+                </div>
+            </form>
+        </div>
+
         <div class="admin-table">
             <table class="table">
                 <thead>
                     <tr>
-                        <th>Employee/Manager Name</th>
-                        <th>Role</th>
-                        <th>Total Approved Leaves</th>
-                        <th>Pending Requests</th>
+                        <th>Employee</th>
+                        <th>Leave Type</th>
+                        <th>Period</th>
+                        <th>Days</th>
+                        <th>Status</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var stat in Model.EmployeeStats) {
-                        <tr>
-                            <td class="fw-semibold">@stat.EmployeeName</td>
-                            <td>
-                                @if(stat.Role == "Admin") { <span class="badge bg-dark">Admin</span> }
-                                else if(stat.Role == "Manager") { <span class="badge bg-primary">Manager</span> }
-                                else { <span class="badge bg-secondary">Employee</span> }
-                            </td>
-                            <td><span class="fw-bold">@stat.TotalLeavesTaken</span></td>
-                            <td>@stat.PendingRequests</td>
-                        </tr>
+                    @if(Model.AllLeaves.Any()) {
+                        @foreach (var leave in Model.AllLeaves) {
+                            <tr>
+                                <td>
+                                    <div class="fw-bold">@leave.EmployeeName</div>
+                                    <div class="text-muted smaller">@leave.EmployeeEmail</div>
+                                </td>
+                                <td><span class="badge bg-secondary bg-opacity-10 text-dark">@leave.LeaveTypeName</span></td>
+                                <td>@leave.StartDate.ToString("dd MMM yyyy") - @leave.EndDate.ToString("dd MMM yyyy")</td>
+                                <td>@leave.TotalDays</td>
+                                <td>
+                                    @if(leave.Status == "Approved") {
+                                        <span class="badge bg-success">Approved</span>
+                                    } else if(leave.Status == "Rejected") {
+                                        <span class="badge bg-danger">Rejected</span>
+                                    } else if(leave.Status == "Cancelled") {
+                                        <span class="badge bg-secondary">Cancelled</span>
+                                    } else {
+                                        <span class="badge bg-warning text-dark">Pending</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    } else {
+                         <tr><td colspan="5" class="text-center py-4 text-muted">No records found.</td></tr>
                     }
                 </tbody>
             </table>
