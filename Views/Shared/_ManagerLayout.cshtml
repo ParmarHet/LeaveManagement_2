@@ -149,8 +149,8 @@
                 <div class="ds-profile-name">@fullName</div>
                 <div class="ds-profile-role">Manager</div>
             </div>
-            <div class="ds-avatar shadow-sm border ms-2">
-                <img src="https://ui-avatars.com/api/?name=@(u?.FirstName ?? "U")&background=16a34a&color=fff" alt="User">
+            <div class="ds-avatar shadow-sm border ms-2" style="background: linear-gradient(135deg, #059669, #064e3b); color: #fff;">
+                <i class="bi bi-people-fill fs-5"></i>
             </div>
         </div>
     </div>
@@ -165,21 +165,8 @@
 
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
 <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
 <script>
-    function toggleSidebar() {
-        const sidebar = $('#mainSidebar');
-        const main = $('.ds-main');
-        const topbar = $('.ds-topbar');
-        
-        sidebar.toggleClass('sidebar-closed');
-        main.toggleClass('content-full');
-        topbar.toggleClass('content-full');
-        
-        if ($(window).width() < 992) {
-            sidebar.toggleClass('show');
-            $('#sidebarOverlay').toggleClass('show');
-        }
-    }
 </script>
 @await RenderSectionAsync("Scripts", required: false)
 </body>

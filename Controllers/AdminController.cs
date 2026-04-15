@@ -367,7 +367,7 @@ public class AdminController : Controller
             OnLeaveTodayCount = todayLeaves.Count,
             PendingApprovalsCount = pendingLeaves.Count,
             TotalEmployees = nonAdminUsers.Count,
-            TotalAbsent = todayLeaves.Count,
+            PresentTodayCount = nonAdminUsers.Count - todayLeaves.Count,
             TodayLeaves = todayLeaves,
             PendingLeaves = pendingLeaves,
             AllLeaves = allLeavesMapped,

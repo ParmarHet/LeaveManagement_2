@@ -41,7 +41,11 @@
                         <div class="small mb-3">
                             <div class="d-flex justify-content-between mb-2">
                                 <span class="text-muted"><i class="fa-solid fa-calendar-check me-2 opacity-50"></i>Allocation</span>
-                                <span class="fw-semibold">@(type.DefaultDays > 0 ? $"{type.DefaultDays} days / year" : "N/A")</span>
+                                <span class="fw-semibold">
+                                    @if(type.Code == "LW") { <span>Unlimited (LWP)</span> }
+                                    else if(type.Code == "CO" || type.Code == "WO" || type.Code == "HD") { <span>Dynamic / N/A</span> }
+                                    else { <span>@type.YearlyLimit Days / Year</span> }
+                                </span>
                             </div>
                             <div class="d-flex justify-content-between mb-2">
                                 <span class="text-muted"><i class="fa-solid fa-sync me-2 opacity-50"></i>Carry Forward</span>
@@ -49,7 +53,12 @@
                             </div>
                             <div class="d-flex justify-content-between">
                                 <span class="text-muted"><i class="fa-solid fa-layer-group me-2 opacity-50"></i>Max Consecutive</span>
-                                <span class="fw-semibold">@(type.MaxConsecutiveDays > 0 ? $"{type.MaxConsecutiveDays} days" : "Unlimited")</span>
+                                <span class="fw-semibold">
+                                    @if(type.Code == "PL" || type.Code == "SL") { <span>All at once</span> }
+                                    else if(type.Code == "CL") { <span>2 Days max</span> }
+                                    else if(type.MaxConsecutiveDays > 0) { <span>@type.MaxConsecutiveDays Days</span> }
+                                    else { <span>Unlimited</span> }
+                                </span>
                             </div>
                         </div>
 

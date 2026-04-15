@@ -1,44 +1,112 @@
 @model LMS.Models.Department
 
-<div class="dept-card mb-3 p-3 bg-white border rounded shadow-sm" style="margin-left: @(Model.ParentDepartmentId != null ? "40px" : "0px"); border-left: 5px solid @(Model.ParentDepartmentId == null ? "#6366f1" : "#94a3b8") !important;">
-    <div class="d-flex justify-content-between align-items-center">
+<div class="dept-node-wrapper" style="margin-left: @(Model.ParentDepartmentId != null ? "48px" : "0px");">
+    <div class="dept-card mb-3 p-3 bg-white border rounded shadow-sm d-flex justify-content-between align-items-center" 
+         style="border-left: 4px solid @(Model.ParentDepartmentId == null ? "#059669" : "#86efac") !important; position: relative;">
+        
+        @if (Model.ParentDepartmentId != null)
+        {
+            <div class="tree-line"></div>
+        }
+
         <div class="d-flex align-items-center">
-            @if (Model.ParentDepartmentId != null)
-            {
-                <i class="bi bi-arrow-return-right me-3 text-muted"></i>
-            }
+            <div class="dept-icon me-3 bg-light rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                <i class="fa-solid @(Model.ParentDepartmentId == null ? "fa-building" : "fa-users-gear") text-success opacity-75"></i>
+            </div>
             <div>
-                <h6 class="fw-bold mb-0">@Model.Name</h6>
-                <small class="text-muted">
+                <h6 class="fw-bold mb-0 text-dark">@Model.Name</h6>
+                <div class="small d-flex align-items-center mt-1">
                     @if (Model.Manager != null)
                     {
-                        <span class="text-primary"><i class="bi bi-person-badge me-1"></i>Manager: @Model.Manager.FirstName @Model.Manager.LastName</span>
+                        <span class="text-muted"><i class="fa-solid fa-user-tie me-1"></i>Manager: <span class="text-dark fw-medium">@Model.Manager.FirstName @Model.Manager.LastName</span></span>
                     }
                     else
                     {
-                        <span class="fst-italic">No manager assigned</span>
+                        <span class="text-warning small fst-italic"><i class="fa-solid fa-circle-exclamation me-1"></i>No manager assigned</span>
                     }
-                </small>
+                </div>
             </div>
         </div>
+
         <div class="actions">
-            <div class="btn-group">
-                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-primary shadow-xs"><i class="bi bi-pencil"></i></a>
-                <a asp-action="AssignManager" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-secondary shadow-xs"><i class="bi bi-person-plus"></i></a>
-                <form asp-action="Delete" asp-route-id="@Model.Id" method="post" class="d-inline" onsubmit="return confirm('Delete @Model.Name?')">
+            <div class="btn-group gap-1">
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-sm btn-light border-0 text-primary" title="Edit Settings">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                </a>
+                <a asp-action="AssignManager" asp-route-id="@Model.Id" class="btn btn-sm btn-light border-0 text-success" title="Assign Manager">
+                    <i class="fa-solid fa-user-plus"></i>
+                </a>
+                <form asp-action="Delete" asp-route-id="@Model.Id" method="post" class="d-inline" onsubmit="return confirm('Delete @Model.Name and all its sub-departments?')">
                     @Html.AntiForgeryToken()
-                    <button type="submit" class="btn btn-sm btn-outline-danger shadow-xs"><i class="bi bi-trash"></i></button>
+                    <button type="submit" class="btn btn-sm btn-light border-0 text-danger">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
                 </form>
             </div>
         </div>
     </div>
     
+    @if (Model.SubDepartments.Any())
+    {
+        <div class="sub-dept-container">
+            @foreach (var sub in Model.SubDepartments.OrderBy(s => s.Name))
+            {
+                @await Html.PartialAsync("_DepartmentNode", sub)
+            }
+        </div>
+    }
 </div>
 
-@if (Model.SubDepartments.Any())
-{
-    @foreach (var sub in Model.SubDepartments)
-    {
-        @await Html.PartialAsync("_DepartmentNode", sub)
+<style>
+    .dept-card {
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        border-color: #f1f5f9 !important;
     }
-}
+    .dept-card:hover {
+        background-color: #fafdfb !important;
+        border-color: #86efac !important;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05) !important;
+        transform: translateX(4px);
+    }
+    .tree-line {
+        position: absolute;
+        left: -28px;
+        top: 50%;
+        width: 24px;
+        height: 2px;
+        background-color: #e2e8f0;
+    }
+    .sub-dept-container {
+        position: relative;
+        padding-left: 2px;
+    }
+    .sub-dept-container::before {
+        content: '';
+        position: absolute;
+        left: 20px;
+        top: -16px;
+        bottom: 30px;
+        width: 2px;
+        background-color: #e2e8f0;
+    }
+
+    @@media (max-width: 767px) {
+        .dept-node-wrapper {
+            margin-left: 20px !important;
+        }
+        .tree-line {
+            left: -18px;
+            width: 14px;
+        }
+        .sub-dept-container::before {
+            left: 10px;
+        }
+        .dept-icon {
+            width: 32px !important;
+            height: 32px !important;
+        }
+        .dept-icon i {
+            font-size: 0.8rem;
+        }
+    }
+</style>

@@ -189,7 +189,7 @@ namespace LMS.Areas.Identity.Pages.Account
                     }
                     else
                     {
-                        TempData["ErrorMessage"] = "Registration Successful. Awaiting Admin Approval.";
+                        TempData["SuccessMessage"] = "Registration Successful. Awaiting Admin Approval.";
                         return RedirectToPage("Login");
                     }
                 }

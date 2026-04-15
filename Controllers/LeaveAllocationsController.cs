@@ -14,7 +14,9 @@ public class LeaveAllocationsController(ApplicationDbContext context, UserManage
     // GET: LeaveAllocations
     public async Task<IActionResult> Index()
     {
-        var leaveTypes = await context.LeaveTypes.ToListAsync();
+        var leaveTypes = await context.LeaveTypes
+            .Where(t => t.Code != "ML" && t.Code != "BL" && t.Code != "HD")
+            .ToListAsync();
         var model = new ManageLeaveAllocationViewModel
         {
             LeaveTypes = leaveTypes
@@ -79,6 +81,7 @@ public class LeaveAllocationsController(ApplicationDbContext context, UserManage
         var allocations = await context.LeaveAllocations
             .Include(q => q.LeaveType)
             .Where(q => q.EmployeeId == id && q.Period == DateTime.Now.Year)
+            .Where(q => q.LeaveType.Code != "ML" && q.LeaveType.Code != "BL" && q.LeaveType.Code != "HD")
             .ToListAsync();
 
         var requests = await context.LeaveRequests

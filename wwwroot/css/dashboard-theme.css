@@ -239,9 +239,24 @@ body.dashboard-body {
 }
 
 .ds-avatar {
-    width: 36px; height: 36px;
+    width: 38px;
+    height: 38px;
     border-radius: 50%;
     overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease;
+}
+
+.ds-avatar:hover {
+    transform: scale(1.05);
+}
+
+.ds-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .ds-profile-name {
@@ -274,6 +289,8 @@ body.dashboard-body {
     justify-content: space-between;
     align-items: flex-start;
     margin-bottom: 40px;
+    flex-wrap: wrap;
+    gap: 20px;
 }
 
 .ds-page-title {
@@ -283,6 +300,7 @@ body.dashboard-body {
     margin: 0;
     line-height: 1.1;
     letter-spacing: -1px;
+    min-width: 280px;
 }
 
 /* Filter bar matches the reference image */
@@ -425,6 +443,8 @@ body.dashboard-body {
     border-radius: 20px;
     padding: 10px;
     margin-top: 30px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .ds-table {
@@ -481,13 +501,64 @@ body.dashboard-body {
    RESPONSIVE
    ══════════════════════════════════════ */
 @media (max-width: 991px) {
-    .ds-sidebar { transform: translateX(-100%); }
-    .ds-sidebar.show { transform: translateX(0); width: 260px; }
-    .ds-sidebar.show .ds-logo-text, .ds-sidebar.show .ds-nav-link span { display: block; }
-    .ds-sidebar.show .ds-sidebar-nav { align-items: flex-start; }
-    .ds-sidebar.show .ds-nav-link { width: 100%; justify-content: flex-start; padding: 0 14px; gap: 14px; }
+    :root {
+        --ds-content-pad: 20px;
+    }
+
+    .ds-sidebar { 
+        transform: translateX(-100%); 
+        width: 260px !important;
+        visibility: visible !important;
+        box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+    }
+    .ds-sidebar.show { 
+        transform: translateX(0); 
+    }
+    
+    .ds-sidebar.show .ds-logo-text, 
+    .ds-sidebar.show .ds-nav-link span { display: block; }
     
     .ds-topbar, .ds-main { margin-left: 0 !important; }
+    
+    .ds-page-title {
+        font-size: 2rem;
+        letter-spacing: -0.5px;
+    }
+
+    .ds-topbar {
+        padding: 0 15px;
+    }
+}
+
+@media (max-width: 575px) {
+    .ds-page-header {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .ds-btn-primary {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .ds-filter-bar {
+        overflow-x: auto;
+        padding-bottom: 8px;
+        white-space: nowrap;
+        margin-left: -5px;
+        margin-right: -5px;
+    }
+
+    .ds-filter-bar > * {
+        flex-shrink: 0;
+    }
+}
+
+/* Global Responsive Table Utilities */
+.table-responsive {
+    border-radius: 12px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 
@@ -603,14 +674,17 @@ body.dashboard-body {
     background: #f1f3f5;
     color: #1a1a1a;
 }
-/* ── Collapsed States ── */
-.ds-sidebar.sidebar-closed {
-    width: 0 !important;
-    border-right: none !important;
-}
+/* ── Collapsed States (Desktop Only) ── */
+@media (min-width: 992px) {
+    .ds-sidebar.sidebar-closed {
+        width: 0 !important;
+        border-right: none !important;
+        visibility: hidden;
+    }
 
-.ds-topbar.content-full, .ds-main.content-full {
-    margin-left: 0 !important;
+    .ds-topbar.content-full, .ds-main.content-full {
+        margin-left: 0 !important;
+    }
 }
 
 /* Ensure smooth transition for all affected elements */

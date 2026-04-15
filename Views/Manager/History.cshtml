@@ -13,11 +13,11 @@
     <div class="row g-3 mb-4 p-3 bg-light rounded-3 border mx-0 align-items-end">
         <div class="col-md-3">
             <label class="form-label small fw-bold text-muted">Search Employee/Remarks</label>
-            <input type="text" id="teamSearch" class="form-control form-control-sm" placeholder="Search name or message...">
+            <input type="text" id="teamSearch" class="form-control form-control-sm ds-filter-input" placeholder="Search name or message..." data-target="#teamHistoryTable">
         </div>
         <div class="col-md-2">
             <label class="form-label small fw-bold text-muted">Filter by Type</label>
-            <select id="teamTypeFilter" class="form-select form-select-sm">
+            <select id="teamTypeFilter" class="form-select form-select-sm ds-filter-input" data-target="#teamHistoryTable">
                 <option value="">All Types</option>
                 @foreach(var t in Model.Select(m => m.LeaveType?.Name).Where(x => x != null).Distinct())
                 {
@@ -27,7 +27,7 @@
         </div>
         <div class="col-md-2">
             <label class="form-label small fw-bold text-muted">Filter by Status</label>
-            <select id="teamStatusFilter" class="form-select form-select-sm">
+            <select id="teamStatusFilter" class="form-select form-select-sm ds-filter-input" data-target="#teamHistoryTable">
                 <option value="">All Statuses</option>
                 <option value="Approved">Approved</option>
                 <option value="Pending">Pending</option>
@@ -37,16 +37,16 @@
         </div>
         <div class="col-md-2">
             <label class="form-label small fw-bold text-muted">From Date</label>
-            <input type="date" id="teamFromDate" class="form-control form-control-sm">
+            <input type="date" id="teamFromDate" class="form-control form-control-sm ds-filter-input" data-target="#teamHistoryTable">
         </div>
         <div class="col-md-2">
             <label class="form-label small fw-bold text-muted">To Date</label>
-            <input type="date" id="teamToDate" class="form-control form-control-sm">
+            <input type="date" id="teamToDate" class="form-control form-control-sm ds-filter-input" data-target="#teamHistoryTable">
         </div>
         <div class="col-md-1">
-            <button id="resetTeamFilters" class="btn btn-outline-secondary btn-sm w-100" title="Reset Filters">
+            <a href="@Url.Action("History")" class="btn btn-outline-secondary btn-sm w-100" title="Reset Filters">
                 <i class="fa-solid fa-rotate-left"></i>
-            </button>
+            </a>
         </div>
     </div>
 
@@ -83,64 +83,4 @@
     @if (!Model.Any()) { <div class="text-center text-muted py-4"><i class="fa-solid fa-folder-open fa-2x mb-2"></i><p>No leave history found.</p></div> }
 </div>
 
-@section Scripts {
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const searchInput = document.getElementById('teamSearch');
-        const typeFilter = document.getElementById('teamTypeFilter');
-        const statusFilter = document.getElementById('teamStatusFilter');
-        const fromDateFilter = document.getElementById('teamFromDate');
-        const toDateFilter = document.getElementById('teamToDate');
-        const resetButton = document.getElementById('resetTeamFilters');
-        const tableRows = document.querySelectorAll('#teamHistoryTable tbody tr');
 
-        function filterTeamTable() {
-            const searchText = searchInput.value.toLowerCase().trim();
-            const selectedType = typeFilter.value;
-            const selectedStatus = statusFilter.value.toLowerCase();
-            const fromDate = fromDateFilter.value ? new Date(fromDateFilter.value) : null;
-            const toDate = toDateFilter.value ? new Date(toDateFilter.value) : null;
-
-            tableRows.forEach(row => {
-                const nameText = row.children[0].textContent.toLowerCase();
-                const typeText = row.children[1].textContent.trim();
-                const fromText = row.children[2].textContent.trim();
-                const toText = row.children[3].textContent.trim();
-                const remarkText = row.children[5].textContent.toLowerCase();
-                const statusText = row.children[6].textContent.toLowerCase();
-
-                const rowFromDate = new Date(fromText);
-                const rowToDate = new Date(toText);
-
-                const matchesSearch = !searchText || nameText.includes(searchText) || remarkText.includes(searchText);
-                const matchesType = !selectedType || typeText === selectedType;
-                const matchesStatus = !selectedStatus || statusText.includes(selectedStatus);
-                
-                let matchesDate = true;
-                if (fromDate && rowFromDate < fromDate) matchesDate = false;
-                if (toDate && rowToDate > toDate) matchesDate = false;
-
-                if (matchesSearch && matchesType && matchesStatus && matchesDate) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
-            });
-        }
-
-        searchInput.addEventListener('input', filterTeamTable);
-        typeFilter.addEventListener('change', filterTeamTable);
-        statusFilter.addEventListener('change', filterTeamTable);
-        fromDateFilter.addEventListener('change', filterTeamTable);
-        toDateFilter.addEventListener('change', filterTeamTable);
-        resetButton.addEventListener('click', () => {
-            searchInput.value = '';
-            typeFilter.value = '';
-            statusFilter.value = '';
-            fromDateFilter.value = '';
-            toDateFilter.value = '';
-            filterTeamTable();
-        });
-    });
-</script>
-}

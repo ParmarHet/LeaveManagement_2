@@ -32,7 +32,7 @@ public class LeaveTypesController : Controller
     // POST: LeaveTypes/Create
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("Id,Name,DefaultDays")] LeaveType leaveType)
+    public async Task<IActionResult> Create([Bind("Id,Name,Code,DefaultDays,IsPaid,RequiresApproval,MaxConsecutiveDays,YearlyLimit,CarryForward,IsEnabled")] LeaveType leaveType)
     {
         if (ModelState.IsValid)
         {
@@ -58,7 +58,7 @@ public class LeaveTypesController : Controller
     // POST: LeaveTypes/Edit/5
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, [Bind("Id,Name,DefaultDays,DateCreated")] LeaveType leaveType)
+    public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Code,DefaultDays,IsPaid,RequiresApproval,MaxConsecutiveDays,YearlyLimit,CarryForward,IsEnabled,DateCreated")] LeaveType leaveType)
     {
         if (id != leaveType.Id) return NotFound();
 

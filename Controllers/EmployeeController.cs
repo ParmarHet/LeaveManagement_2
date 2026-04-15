@@ -270,6 +270,12 @@ public class EmployeeController : Controller
             var deptUsers = await _context.Users.Where(u => u.DepartmentId == user.DepartmentId && u.IsActive).CountAsync();
             if (deptUsers > 0)
             {
+                // Dynamic attendance rule based on team size
+                double minAttendancePercent = 60;
+                if (deptUsers == 1) minAttendancePercent = 0;
+                else if (deptUsers == 2) minAttendancePercent = 50;
+                else minAttendancePercent = 60;
+
                 for (var d = model.StartDate; d <= model.EndDate; d = d.AddDays(1))
                 {
                     if (d.DayOfWeek == DayOfWeek.Saturday || d.DayOfWeek == DayOfWeek.Sunday) continue;
@@ -280,9 +286,9 @@ public class EmployeeController : Controller
                         .CountAsync();
                     
                     double attendancePercentage = (double)(deptUsers - othersOnLeave - 1) / deptUsers * 100;
-                    if (attendancePercentage < 60)
+                    if (attendancePercentage < minAttendancePercent)
                     {
-                        ModelState.AddModelError("", $"Your leave request on {d:dd MMM yyyy} drops department attendance below 60% ({attendancePercentage:0.0}%). Request rejected.");
+                        ModelState.AddModelError("", $"Your leave request on {d:dd MMM yyyy} drops department attendance below the required {minAttendancePercent}% (Current: {attendancePercentage:0.0}%). Request rejected.");
                         return View(model);
                     }
                 }
