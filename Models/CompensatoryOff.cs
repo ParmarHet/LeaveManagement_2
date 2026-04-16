@@ -1,6 +1,6 @@
 using System;
 
-namespace LMS.Models;
+namespace LeavePro.Models;
 
 public class CompensatoryOff
 {

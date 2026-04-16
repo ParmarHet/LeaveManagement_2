@@ -1,10 +1,10 @@
 @using Microsoft.AspNetCore.Identity
-@inject UserManager<LMS.Models.ApplicationUser> UserManager
-@model List<LMS.Models.LeaveRequest>
+@inject UserManager<LeavePro.Models.ApplicationUser> UserManager
+@model List<LeavePro.Models.LeaveRequest>
 @{
     ViewData["Title"] = "Employee Leave History";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
-    var employee = ViewBag.Employee as LMS.Models.ApplicationUser;
+    var employee = ViewBag.Employee as LeavePro.Models.ApplicationUser;
 }
 
 <div class="page-header">
@@ -44,7 +44,7 @@
 
     <div class="row g-3 mb-4">
         @{
-            var balances = ViewBag.Balances as List<LMS.Models.LeaveBalanceViewModel>;
+            var balances = ViewBag.Balances as List<LeavePro.Models.LeaveBalanceViewModel>;
             bool isAdmin = await UserManager.IsInRoleAsync(employee, "Admin");
         }
         @if (!isAdmin && balances != null && balances.Any())

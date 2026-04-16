@@ -1,6 +1,6 @@
 using System.Text.Encodings.Web;
 
-namespace LMS.Services;
+namespace LeavePro.Services;
 
 public static class EmailTemplateHelper
 {

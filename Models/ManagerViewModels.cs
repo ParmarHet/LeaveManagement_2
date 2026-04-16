@@ -1,4 +1,4 @@
-namespace LMS.Models;
+namespace LeavePro.Models;
 
 public class ManagerDashboardViewModel
 {
@@ -41,6 +41,7 @@ public class LeaveApprovalViewModel
     public DateTime? DateOfDeath { get; set; }
     public string? DeceasedName { get; set; }
     public string? DeceasedRelationship { get; set; }
+    public bool IsCancelled { get; set; }
 }
 
 public class ManagerReportsViewModel

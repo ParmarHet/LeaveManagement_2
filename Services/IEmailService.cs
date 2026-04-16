@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Identity.UI.Services;
 
-namespace LMS.Services;
+namespace LeavePro.Services;
 
 public interface IEmailService : IEmailSender
 {

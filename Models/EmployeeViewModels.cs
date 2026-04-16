@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace LMS.Models;
+namespace LeavePro.Models;
 
 public class ApplyLeaveViewModel
 {
@@ -31,6 +31,7 @@ public class ApplyLeaveViewModel
 
     public List<LeaveType> LeaveTypes { get; set; } = new();
     public List<Holiday> AvailableFloatingHolidays { get; set; } = new();
+    public List<LeaveBalanceViewModel> CurrentBalances { get; set; } = new();
 }
 
 public class LeaveBalanceViewModel

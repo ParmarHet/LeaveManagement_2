@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using LMS.Models;
-using LMS.Data;
+using LeavePro.Models;
+using LeavePro.Data;
 
-namespace LMS.ViewComponents;
+namespace LeavePro.ViewComponents;
 
 public class NotificationsViewComponent : ViewComponent
 {

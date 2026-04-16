@@ -1,4 +1,4 @@
-namespace LMS.Constants;
+namespace LeavePro.Constants;
 
 public static class Roles
 {

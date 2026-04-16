@@ -1,4 +1,4 @@
-@model LMS.Models.UserProfileViewModel
+@model LeavePro.Models.UserProfileViewModel
 @{
     ViewData["Title"] = "My Profile";
     Layout = User.IsInRole("Admin") ? "_AdminLayout" : (User.IsInRole("Manager") ? "_ManagerLayout" : "_EmployeeLayout");

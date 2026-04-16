@@ -1,22 +1,25 @@
 :root {
-    /* Use exact Get Started button colors from Home page */
-    --primary-bg: #86efac; /* button background */
-    --primary-hover-bg: #6ee7b7;
-    --primary-text: #065f46; /* button text */
-    --primary-color: var(--primary-bg);
-    --primary-hover: var(--primary-hover-bg);
-    --secondary-color: #64748b;
-    --bg-overlay: rgba(255, 255, 255, 0.85);
-    --glass-bg: rgba(255, 255, 255, 0.75);
-    --glass-border: rgba(255, 255, 255, 0.3);
-    --text-main: #1e293b;
-    --text-muted: #64748b;
-    --shadow-premium: 0 10px 30px rgba(0, 0, 0, 0.1);
+    /* Premium Soft Mint Theme (Matching Image) */
+    --primary-bg: #86efac; /* Mint Green 300 */
+    --primary-hover-bg: #6ee7b7; /* Mint Green 400 */
+    --primary-text: #065f46; /* Deep Emerald 800 */
+    --primary-color: #059669; /* Emerald 600 */
+    --primary-hover: #047857;
+    --secondary-color: #6b7280;
+    --bg-overlay: rgba(255, 255, 255, 0.2); /* Very low faintness to make the picture fully visible */
+    --glass-bg: #ffffff;
+    --glass-border: #eef7f1;
+    --text-main: #111827;
+    --text-muted: #6b7280;
+    --shadow-premium: 0 10px 40px rgba(0, 0, 0, 0.05);
 }
 
 body.auth-page {
-    /* Formal business background: subtle pale green matching dashboard, no image */
-    background: #F2FAE9;
+    background: linear-gradient(var(--bg-overlay), var(--bg-overlay)), url('/images/login_bg.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
     min-height: 100vh;
     display: flex;
     align-items: center;
@@ -29,10 +32,12 @@ body.auth-page {
     width: 100%;
     max-width: 480px;
     padding: 2.25rem;
-    background: #ffffff; /* solid white card for formal business look */
-    border: 1px solid #e6f4ea; /* subtle greenish border */
-    border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(6,95,70,0.06);
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    box-shadow: var(--shadow-premium);
     animation: fadeIn 0.45s ease-out;
 }
 
@@ -69,8 +74,8 @@ body.auth-page {
 }
 
 .form-floating > .form-control:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(6,95,70,0.06);
+    border-color: #86efac;
+    box-shadow: 0 0 0 4px rgba(134, 239, 172, 0.15);
 }
 
 .form-label {
@@ -78,35 +83,38 @@ body.auth-page {
 }
 
 .btn-primary {
-    background: var(--primary-color);
+    background: var(--primary-bg);
     border: none;
-    border-radius: 10px;
-    padding: 0.75rem;
+    border-radius: 12px;
+    padding: 0.85rem;
     font-weight: 700;
-    transition: all 0.18s ease;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     color: var(--primary-text);
+    box-shadow: 0 4px 14px rgba(134, 239, 172, 0.3);
 }
 
 .btn-primary:hover {
-    background: var(--primary-hover);
-    transform: translateY(-1px);
-    box-shadow: 0 6px 18px rgba(6,95,70,0.08);
+    background: var(--primary-hover-bg);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(110, 231, 183, 0.4);
+    color: var(--primary-text);
+}
+
+.auth-container a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.auth-container a:hover {
+    color: var(--primary-hover);
+    text-decoration: underline;
 }
 
 .auth-footer {
     text-align: center;
     margin-top: 1.5rem;
     font-size: 0.9rem;
-}
-
-.auth-footer a {
-    color: var(--primary-color);
-    text-decoration: none;
-    font-weight: 600;
-}
-
-.auth-footer a:hover {
-    text-decoration: underline;
 }
 
 .divider {
@@ -135,6 +143,16 @@ body.auth-page {
 }
 
 @media (max-width: 576px) {
+    .auth-container {
+        padding: 1.5rem;
+        margin: 1rem;
+        border-radius: 20px;
+    }
+    
+    .auth-header h1 {
+        font-size: 1.4rem;
+    }
+
     .register-grid {
         grid-template-columns: 1fr;
     }
@@ -145,8 +163,8 @@ body.auth-page {
     width: 52px;
     height: 52px;
     border-radius: 10px;
-    background: linear-gradient(135deg, #16a34a, #065f46);
-    color: #fff;
+    background: #ecfdf5;
+    color: #059669;
     display: flex;
     align-items: center;
     justify-content: center;

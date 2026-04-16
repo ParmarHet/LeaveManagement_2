@@ -1,7 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace LMS.Models
+namespace LeavePro.Models
 {
     public class UserProfileViewModel
     {

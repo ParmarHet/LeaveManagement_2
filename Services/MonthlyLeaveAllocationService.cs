@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using LMS.Models;
-using LMS.Data;
+using LeavePro.Models;
+using LeavePro.Data;
 
-namespace LMS.Services;
+namespace LeavePro.Services;
 
 public class MonthlyLeaveAllocationService : BackgroundService
 {

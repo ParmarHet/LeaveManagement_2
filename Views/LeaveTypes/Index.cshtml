@@ -1,4 +1,4 @@
-@model IEnumerable<LMS.Models.LeaveType>
+@model IEnumerable<LeavePro.Models.LeaveType>
 
 @{
     ViewData["Title"] = "Leave Types";
@@ -13,22 +13,68 @@
     <thead>
         <tr>
             <th>@Html.DisplayNameFor(model => model.Name)</th>
-            <th>@Html.DisplayNameFor(model => model.DefaultDays)</th>
-            <th>@Html.DisplayNameFor(model => model.DateCreated)</th>
-            <th>@Html.DisplayNameFor(model => model.DateModified)</th>
+            <th>Type Code</th>
+            <th>Yearly Limit (Total)</th>
+            <th>Max Consecutive Days</th>
+            <th>@Html.DisplayNameFor(model => model.IsPaid)</th>
+            <th>Last Modified</th>
             <th></th>
         </tr>
     </thead>
     <tbody>
 @foreach (var item in Model) {
         <tr>
-            <td>@Html.DisplayFor(modelItem => item.Name)</td>
-            <td>@Html.DisplayFor(modelItem => item.DefaultDays)</td>
-            <td>@item.DateCreated.ToLocalTime().ToString("yyyy-MM-dd")</td>
+            <td>
+                <span class="fw-bold">@item.Name</span>
+            </td>
+            <td>
+                <span class="badge bg-light text-dark border">@item.Code</span>
+            </td>
+            <td>
+                @if (item.Code == "LW")
+                {
+                    <span class="text-primary fw-bold">Unlimited (LWP)</span>
+                }
+                else if (item.Code == "CO" || item.Code == "WO" || item.Code == "HD")
+                {
+                    <span class="text-muted small">N/A (Dynamic)</span>
+                }
+                else
+                {
+                    <span>@item.YearlyLimit Days</span>
+                }
+            </td>
+            <td>
+                @if (item.Code == "PL" || item.Code == "SL")
+                {
+                    <span class="text-success fw-bold">All at once</span>
+                }
+                else if (item.Code == "CL")
+                {
+                    <span>2 Max</span>
+                }
+                else if (item.MaxConsecutiveDays > 0)
+                {
+                    <span>@item.MaxConsecutiveDays Days</span>
+                }
+                else
+                {
+                    <span class="text-muted">Unlimited</span>
+                }
+            </td>
+            <td>
+                @if (item.IsPaid)
+                {
+                    <span class="badge bg-success">Paid</span>
+                }
+                else
+                {
+                    <span class="badge bg-secondary">Unpaid</span>
+                }
+            </td>
             <td>@item.DateModified.ToLocalTime().ToString("yyyy-MM-dd")</td>
             <td>
-                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning btn-sm">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info btn-sm">Details</a> |
+                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning btn-sm">Edit Rules</a>
                 <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger btn-sm">Delete</a>
             </td>
         </tr>

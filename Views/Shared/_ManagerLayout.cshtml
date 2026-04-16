@@ -1,11 +1,11 @@
 @using Microsoft.AspNetCore.Identity
-@inject UserManager<LMS.Models.ApplicationUser> UserManager
+@inject UserManager<LeavePro.Models.ApplicationUser> UserManager
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - LEAVE PRO Manager Portal</title>
+    <title>@ViewData["Title"] - LeavePro Manager Portal</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
@@ -131,26 +131,22 @@
             var u = await UserManager.GetUserAsync(User);
             var fullName = u != null ? $"{u.FirstName} {u.LastName}" : User.Identity?.Name;
         }
-        @if (isTeamMode)
-        {
-            <a class="btn btn-primary btn-sm rounded-pill px-4 fw-bold d-none d-md-flex align-items-center gap-2 shadow-sm" style="background: linear-gradient(135deg, #4f46e5, #3b82f6); border: none;" href="@Url.Action("Dashboard","Employee")">
-                <i class="bi bi-person-fill"></i> Personal Mode
+        <div class="mode-toggle-wrapper shadow-sm">
+            <a href="@Url.Action("Dashboard","Employee")" class="mode-btn @(isPersonalMode ? "active" : "")" title="Switch to Personal View">
+                <i class="bi bi-person-fill"></i><span>Personal</span>
             </a>
-        }
-        else
-        {
-            <a class="btn btn-success btn-sm rounded-pill px-4 fw-bold d-none d-md-flex align-items-center gap-2 shadow-sm" style="background: linear-gradient(135deg, #10b981, #059669); border: none;" href="@Url.Action("Dashboard","Manager")">
-                <i class="bi bi-people-fill"></i> Team Mode
+            <a href="@Url.Action("Dashboard","Manager")" class="mode-btn @(isTeamMode ? "active" : "")" title="Switch to Team View">
+                <i class="bi bi-people-fill"></i><span>Team</span>
             </a>
-        }
+        </div>
 
         <div class="ds-profile-trigger">
             <div class="text-end d-none d-sm-block">
                 <div class="ds-profile-name">@fullName</div>
                 <div class="ds-profile-role">Manager</div>
             </div>
-            <div class="ds-avatar shadow-sm border ms-2">
-                <img src="https://ui-avatars.com/api/?name=@(u?.FirstName ?? "U")&background=16a34a&color=fff" alt="User">
+            <div class="ds-avatar shadow-sm border ms-2" style="background: linear-gradient(135deg, #059669, #064e3b); color: #fff;">
+                <i class="bi bi-people-fill fs-5"></i>
             </div>
         </div>
     </div>
@@ -165,21 +161,8 @@
 
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
 <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
 <script>
-    function toggleSidebar() {
-        const sidebar = $('#mainSidebar');
-        const main = $('.ds-main');
-        const topbar = $('.ds-topbar');
-        
-        sidebar.toggleClass('sidebar-closed');
-        main.toggleClass('content-full');
-        topbar.toggleClass('content-full');
-        
-        if ($(window).width() < 992) {
-            sidebar.toggleClass('show');
-            $('#sidebarOverlay').toggleClass('show');
-        }
-    }
 </script>
 @await RenderSectionAsync("Scripts", required: false)
 </body>

@@ -1,14 +1,14 @@
-@model List<LMS.Models.Holiday>
+@model List<LeavePro.Models.Holiday>
 @{
     ViewData["Title"] = "Holiday Calendar";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
-    var departments = ViewBag.Departments as List<LMS.Models.Department> ?? new List<LMS.Models.Department>();
+    var departments = ViewBag.Departments as List<LeavePro.Models.Department> ?? new List<LeavePro.Models.Department>();
 }
 
 <!-- STATS ROW -->
 <div class="ds-page-header align-items-center">
     <h1 class="ds-page-title">Holiday<br>Management</h1>
-    <div class="d-flex gap-4">
+    <div class="d-flex gap-4 flex-wrap">
         <div class="ds-stat-card" style="background:#dbeafe; min-width:160px; height:120px; padding:20px;">
             <div class="ds-stat-label" style="color:#1d4ed8;">Total Holidays</div>
             <div class="ds-stat-value" style="color:#1e40af; font-size:2rem;">@ViewBag.TotalHolidays</div>
@@ -28,20 +28,28 @@
 </div>
 
 <!-- ACTION BAR -->
-<div class="ds-filter-bar d-flex gap-2 align-items-center mb-3 p-3 bg-white shadow-sm" style="border-radius: 12px;">
-    <select id="filterDept" class="form-select w-auto rounded-pill border-light text-muted small" onchange="filterTable()">
-        <option value="All">All Departments</option>
-        <option value="Global">Global (All Employees)</option>
-        @foreach(var dept in departments)
-        {
-            <option value="@dept.Name">@dept.Name</option>
-        }
-    </select>
-    <select id="filterType" class="form-select w-auto rounded-pill border-light text-muted small" onchange="filterTable()">
-        <option value="All">All Types</option>
-        <option value="Public">Public</option>
-        <option value="Floating">Floating</option>
-    </select>
+<div class="ds-filter-bar d-flex gap-3 align-items-center mb-3 p-3 bg-white shadow-sm flex-wrap" style="border-radius: 12px;">
+    <div class="d-flex align-items-center gap-2">
+        <i class="bi bi-search text-muted small"></i>
+        <input type="text" class="form-control form-control-sm border-0 bg-light rounded-pill px-3 ds-filter-input" 
+               placeholder="Search holiday name..." data-target="#holidayTable" style="min-width: 250px;">
+    </div>
+    
+    <div class="d-flex gap-2">
+        <select id="filterDept" class="form-select w-auto rounded-pill border-light text-muted small ds-filter-input" data-target="#holidayTable">
+            <option value="">All Departments</option>
+            <option value="Global">Global (All Employees)</option>
+            @foreach(var dept in departments)
+            {
+                <option value="@dept.Name">@dept.Name</option>
+            }
+        </select>
+        <select id="filterType" class="form-select w-auto rounded-pill border-light text-muted small ds-filter-input" data-target="#holidayTable">
+            <option value="">All Types</option>
+            <option value="Public">Public</option>
+            <option value="Floating">Floating</option>
+        </select>
+    </div>
     <div class="ms-auto d-flex gap-2">
         <button class="btn btn-outline-secondary btn-sm rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#importModal">
             <i class="bi bi-upload me-1"></i> Import CSV
@@ -91,7 +99,8 @@
             </div>
             <!-- Legend -->
             <div class="mt-3 pt-3 border-top">
-                <div class="d-flex align-items-center gap-2 mb-2"><div style="width:10px;height:10px;border-radius:50%;background:#2563eb;"></div><span class="small text-muted">Public Holiday</span></div>
+                <div class="d-flex align-items-center gap-2 mb-2"><div style="width:10px;height:10px;border-radius:50%;background:#2563eb;"></div><span class="small text-muted">Global Holiday</span></div>
+                <div class="d-flex align-items-center gap-2 mb-2"><div style="width:10px;height:10px;border-radius:50%;background:#6366f1;"></div><span class="small text-muted">Dept Specific</span></div>
                 <div class="d-flex align-items-center gap-2 mb-2"><div style="width:10px;height:10px;border-radius:50%;background:#f59e0b;"></div><span class="small text-muted">Floating Holiday</span></div>
                 <div class="d-flex align-items-center gap-2"><div style="width:10px;height:10px;border-radius:50%;background:#10b981;"></div><span class="small text-muted">Approved Leave</span></div>
             </div>
@@ -249,17 +258,6 @@
             });
             cal.render();
         });
-
-        function filterTable() {
-            const dept = document.getElementById('filterDept').value;
-            const type = document.getElementById('filterType').value;
-            document.querySelectorAll('#holidayTable tbody tr').forEach(row => {
-                if (!row.dataset.dept) return;
-                const matchDept = dept === 'All' || row.dataset.dept === dept;
-                const matchType = type === 'All' || row.dataset.type === type;
-                row.style.display = (matchDept && matchType) ? '' : 'none';
-            });
-        }
     </script>
     <style>
         .fc-toolbar-title { font-size: 1.1rem !important; font-weight: 700 !important; }

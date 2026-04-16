@@ -1,4 +1,4 @@
-@model LMS.Models.LeaveType
+@model LeavePro.Models.LeaveType
 
 @{
     ViewData["Title"] = "Edit Leave Type";
@@ -8,26 +8,70 @@
 
 <hr />
 <div class="row">
-    <div class="col-md-4">
+    <div class="col-md-6">
         <form asp-action="Edit">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="Id" />
             <input type="hidden" asp-for="DateCreated" />
+            
             <div class="form-group mb-3">
-                <label asp-for="Name" class="control-label"></label>
+                <label asp-for="Code" class="control-label fw-bold"></label>
+                <input asp-for="Code" class="form-control bg-light" readonly />
+                <span class="text-muted small">Unique code used for system logic (Read-only).</span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Name" class="control-label fw-bold"></label>
                 <input asp-for="Name" class="form-control" />
                 <span asp-validation-for="Name" class="text-danger"></span>
             </div>
-            <div class="form-group mb-3">
-                <label asp-for="DefaultDays" class="control-label"></label>
-                <input asp-for="DefaultDays" class="form-control" />
-                <span asp-validation-for="DefaultDays" class="text-danger"></span>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        <label asp-for="YearlyLimit" class="control-label fw-bold">Yearly Limit (Total Days)</label>
+                        <input asp-for="YearlyLimit" class="form-control" />
+                        <span asp-validation-for="YearlyLimit" class="text-danger"></span>
+                        <span class="text-muted small">Set to 0 for unlimited (e.g. LWP).</span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        <label asp-for="MaxConsecutiveDays" class="control-label fw-bold">Max Consecutive Days</label>
+                        <input asp-for="MaxConsecutiveDays" class="form-control" />
+                        <span asp-validation-for="MaxConsecutiveDays" class="text-danger"></span>
+                        <span class="text-muted small">Special logic for PL/SL (All at once) and CL (Max 2) overrides this.</span>
+                    </div>
+                </div>
             </div>
-            <div class="form-group mb-3">
-                <input type="submit" value="Save" class="btn btn-primary" />
-                <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+
+            <div class="form-group form-check mb-3">
+                <label class="form-check-label">
+                    <input class="form-check-input" asp-for="IsPaid" /> @Html.DisplayNameFor(model => model.IsPaid)
+                </label>
+            </div>
+
+            <div class="form-group mb-3 d-none">
+                <label asp-for="DefaultDays" class="control-label">Default Days (System Use)</label>
+                <input asp-for="DefaultDays" class="form-control" />
+            </div>
+
+            <div class="form-group mt-4">
+                <input type="submit" value="Update Leave Rules" class="btn btn-primary px-4" />
+                <a asp-action="Index" class="btn btn-outline-secondary ms-2">Cancel</a>
             </div>
         </form>
+    </div>
+    <div class="col-md-6 border-start ps-4">
+        <h5 class="fw-bold">Rule Reference</h5>
+        <div class="p-3 bg-light rounded mt-3">
+            <ul class="small mb-0">
+                <li class="mb-2"><strong>PL & SL:</strong> Can be consumed all at once regardless of max consecutive setting.</li>
+                <li class="mb-2"><strong>CL:</strong> Automatically restricted to maximum 2 days per instance.</li>
+                <li class="mb-2"><strong>LWP:</strong> Set Yearly Limit to 0 for unlimited status.</li>
+                <li><strong>WO/CO/HD:</strong> These are dynamic and bypass traditional allotment rules.</li>
+            </ul>
+        </div>
     </div>
 </div>
 

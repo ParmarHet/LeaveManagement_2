@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using LMS.Data;
-using LMS.Models;
-using LMS.Services;
+using LeavePro.Data;
+using LeavePro.Models;
+using LeavePro.Services;
 using dotenv.net;
 
 DotEnv.Load();
@@ -15,12 +15,12 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseMySQL(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddDefaultIdentity<LMS.Models.ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = false)
+builder.Services.AddDefaultIdentity<LeavePro.Models.ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = false)
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddControllersWithViews();
-builder.Services.AddHostedService<LMS.Services.MonthlyLeaveAllocationService>();
-builder.Services.AddScoped<LMS.Services.ILeaveAllocationService, LMS.Services.LeaveAllocationService>();
+builder.Services.AddHostedService<LeavePro.Services.MonthlyLeaveAllocationService>();
+builder.Services.AddScoped<LeavePro.Services.ILeaveAllocationService, LeavePro.Services.LeaveAllocationService>();
 
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 builder.Services.AddScoped<IEmailService, EmailService>();

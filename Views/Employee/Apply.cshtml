@@ -1,4 +1,4 @@
-@model LMS.Models.ApplyLeaveViewModel
+@model LeavePro.Models.ApplyLeaveViewModel
 @{
     ViewData["Title"] = "Apply for Leave";
     Layout = User.IsInRole("Admin") ? "_AdminLayout" : (User.IsInRole("Manager") ? "_ManagerLayout" : "_EmployeeLayout");
@@ -34,6 +34,11 @@
                         <option value="@t.Id">@t.Name</option>
                     }
                 </select>
+                <div id="balancePreview" class="mt-2" style="display:none">
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2" style="border-radius:12px;">
+                        <i class="fa-solid fa-wallet me-2"></i>Available Balance: <strong id="remainingDays">0</strong> days
+                    </span>
+                </div>
             </div>
 
             <div class="col-md-6">
@@ -171,6 +176,7 @@ function updateDays() {
 }
 
 const leaveTypes = @Html.Raw(Json.Serialize(Model.LeaveTypes));
+const leaveBalances = @Html.Raw(Json.Serialize(Model.CurrentBalances));
 
 function updateUiForLeaveType() {
     const selectedId = document.getElementById('LeaveTypeId').value;
@@ -201,6 +207,15 @@ function updateUiForLeaveType() {
             document.getElementById('floatingHolidaySection').style.display = 'none';
             document.getElementById('startDate').readOnly = false;
             document.getElementById('endDate').readOnly = false;
+        }
+
+        // Update Balance Preview
+        const balance = leaveBalances.find(b => b.leaveTypeCode === type.code);
+        if (balance) {
+            document.getElementById('remainingDays').textContent = balance.remaining;
+            document.getElementById('balancePreview').style.display = 'block';
+        } else {
+            document.getElementById('balancePreview').style.display = 'none';
         }
 
         // Supporting Document Logic (SL > 2 days, ML require it. BL no longer needs it)

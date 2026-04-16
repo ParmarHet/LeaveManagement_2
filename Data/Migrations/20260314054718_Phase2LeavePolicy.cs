@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 using MySql.EntityFrameworkCore.Metadata;
 
 #nullable disable
 
-namespace LMS.Data.Migrations
+namespace LeavePro.Data.Migrations
 {
     /// <inheritdoc />
     public partial class Phase2LeavePolicy : Migration

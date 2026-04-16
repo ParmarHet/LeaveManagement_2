@@ -1,8 +1,8 @@
-@model LMS.Models.ChangePasswordViewModel
+@model LeavePro.Models.ChangePasswordViewModel
 @{
     ViewData["Title"] = "Account Settings";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
-    var user = ViewBag.User as LMS.Models.ApplicationUser;
+    var user = ViewBag.User as LeavePro.Models.ApplicationUser;
     var initials = (user?.FirstName?[..1] ?? "A") + (user?.LastName?[..1] ?? "");
 }
 

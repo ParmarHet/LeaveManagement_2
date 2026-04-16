@@ -1,9 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 using MySql.EntityFrameworkCore.Metadata;
 
 #nullable disable
 
-namespace LMS.Data.Migrations
+namespace LeavePro.Data.Migrations
 {
     /// <inheritdoc />
     public partial class RemoveTeamStructure : Migration

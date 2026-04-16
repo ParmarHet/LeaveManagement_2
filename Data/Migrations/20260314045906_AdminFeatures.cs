@@ -1,8 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace LMS.Data.Migrations
+namespace LeavePro.Data.Migrations
 {
     /// <inheritdoc />
     public partial class AdminFeatures : Migration

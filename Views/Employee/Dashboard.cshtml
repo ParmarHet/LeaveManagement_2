@@ -1,4 +1,4 @@
-@model LMS.Models.EmployeeDashboardViewModel
+@model LeavePro.Models.EmployeeDashboardViewModel
 @{
     ViewData["Title"] = "Dashboard";
     Layout = User.IsInRole("Admin") ? "_AdminLayout" : (User.IsInRole("Manager") ? "_ManagerLayout" : "_EmployeeLayout");

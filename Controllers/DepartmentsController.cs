@@ -2,11 +2,11 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using LMS.Data;
-using LMS.Models;
-using LMS.Constants;
+using LeavePro.Data;
+using LeavePro.Models;
+using LeavePro.Constants;
 
-namespace LMS.Controllers;
+namespace LeavePro.Controllers;
 
 [Authorize(Roles = Roles.Admin)]
 public class DepartmentsController : Controller

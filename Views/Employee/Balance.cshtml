@@ -1,4 +1,4 @@
-@model IEnumerable<LMS.Models.LeaveBalanceViewModel>
+@model IEnumerable<LeavePro.Models.LeaveBalanceViewModel>
 @{
     ViewData["Title"] = "Leave Balance";
     Layout = User.IsInRole("Admin") ? "_AdminLayout" : (User.IsInRole("Manager") ? "_ManagerLayout" : "_EmployeeLayout");

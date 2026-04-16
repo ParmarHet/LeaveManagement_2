@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Identity;
-using LMS.Models;
-using LMS.Constants;
+using LeavePro.Models;
+using LeavePro.Constants;
 using Microsoft.EntityFrameworkCore;
 
-namespace LMS.Data;
+namespace LeavePro.Data;
 
 public static class DbSeeder
 {
@@ -22,7 +22,7 @@ public static class DbSeeder
             }
         }
 
-        var adminEmail = configuration["EmailSettings:AdminEmail"] ?? "admin@lms.com";
+        var adminEmail = configuration["EmailSettings:AdminEmail"] ?? "admin@leavepro.com";
         var adminUser = await userManager.FindByEmailAsync(adminEmail);
         
         var adminPassword = configuration["EmailSettings:AdminPassword"] ?? "Admin@123";
@@ -67,32 +67,55 @@ public static class DbSeeder
         
         var types = new List<LeaveType>
         {
-            new() { Name = "Weekly Off", Code = "WO", DefaultDays = 0, IsPaid = true, RequiresApproval = false, IsEnabled = true },
-            new() { Name = "Holidays", Code = "HD", DefaultDays = 10, IsPaid = true, RequiresApproval = false, IsEnabled = true },
-            new() { Name = "Floating Holiday", Code = "FD", DefaultDays = 4, IsPaid = true, RequiresApproval = true, IsEnabled = true },
-            new() { Name = "Paid Leave", Code = "PL", DefaultDays = 18, IsPaid = true, RequiresApproval = true, CarryForward = true, MaxConsecutiveDays = 0, IsEnabled = true },
-            new() { Name = "Sick Leave", Code = "SL", DefaultDays = 7, IsPaid = true, RequiresApproval = true, IsEnabled = true },
-            new() { Name = "Casual Leave", Code = "CL", DefaultDays = 7, IsPaid = true, RequiresApproval = true, IsEnabled = true },
-            new() { Name = "Compensatory Off", Code = "CO", DefaultDays = 0, IsPaid = true, RequiresApproval = true, IsEnabled = true },
-            new() { Name = "Leave without Pay", Code = "LW", DefaultDays = 0, IsPaid = false, RequiresApproval = true, IsEnabled = true },
-            new() { Name = "Maternity Leave", Code = "ML", DefaultDays = 182, IsPaid = true, RequiresApproval = true, MaxConsecutiveDays = 182, IsEnabled = true },
-            new() { Name = "Bereavement Leave", Code = "BL", DefaultDays = 5, IsPaid = true, RequiresApproval = true, MaxConsecutiveDays = 5, IsEnabled = true }
+            new() { Name = "Weekly Off", Code = "WO", DefaultDays = 0, YearlyLimit = 0, IsPaid = true, RequiresApproval = false, IsEnabled = true },
+            new() { Name = "Holidays", Code = "HD", DefaultDays = 10, YearlyLimit = 10, IsPaid = true, RequiresApproval = false, IsEnabled = true },
+            new() { Name = "Floating Holiday", Code = "FD", DefaultDays = 4, YearlyLimit = 4, IsPaid = true, RequiresApproval = true, IsEnabled = true },
+            new() { Name = "Paid Leave", Code = "PL", DefaultDays = 18, YearlyLimit = 18, IsPaid = true, RequiresApproval = true, CarryForward = true, MaxConsecutiveDays = 0, IsEnabled = true },
+            new() { Name = "Sick Leave", Code = "SL", DefaultDays = 7, YearlyLimit = 7, IsPaid = true, RequiresApproval = true, IsEnabled = true },
+            new() { Name = "Casual Leave", Code = "CL", DefaultDays = 7, YearlyLimit = 7, IsPaid = true, RequiresApproval = true, MaxConsecutiveDays = 2, IsEnabled = true },
+            new() { Name = "Compensatory Off", Code = "CO", DefaultDays = 0, YearlyLimit = 0, IsPaid = true, RequiresApproval = true, IsEnabled = true },
+            new() { Name = "Leave without Pay", Code = "LW", DefaultDays = 0, YearlyLimit = 0, IsPaid = false, RequiresApproval = true, IsEnabled = true },
+            new() { Name = "Maternity Leave", Code = "ML", DefaultDays = 0, YearlyLimit = 0, IsPaid = true, RequiresApproval = true, MaxConsecutiveDays = 182, IsEnabled = true },
+            new() { Name = "Bereavement Leave", Code = "BL", DefaultDays = 0, YearlyLimit = 0, IsPaid = true, RequiresApproval = true, MaxConsecutiveDays = 5, IsEnabled = true }
         };
 
         foreach (var type in types)
         {
-            if (!context.LeaveTypes.Any(lt => lt.Code == type.Code))
+            var existing = await context.LeaveTypes.FirstOrDefaultAsync(lt => lt.Code == type.Code);
+            if (existing == null)
             {
                 type.DateCreated = DateTime.UtcNow;
                 type.DateModified = DateTime.UtcNow;
                 context.LeaveTypes.Add(type);
+            }
+            else
+            {
+                // Sync YearlyLimit and MaxConsecutiveDays if they are not set properly
+                bool needsUpdate = false;
+                
+                // For ML and BL specifically, update DefaultDays and YearlyLimit to 0 if requested
+                if ((type.Code == "ML" || type.Code == "BL") && existing.DefaultDays > 0)
+                {
+                    existing.DefaultDays = 0;
+                    existing.YearlyLimit = 0;
+                    needsUpdate = true;
+                }
+
+                if (existing.YearlyLimit == 0 && type.YearlyLimit > 0) { existing.YearlyLimit = type.YearlyLimit; needsUpdate = true; }
+                if (existing.MaxConsecutiveDays == 0 && type.MaxConsecutiveDays > 0) { existing.MaxConsecutiveDays = type.MaxConsecutiveDays; needsUpdate = true; }
+                
+                if (needsUpdate)
+                {
+                    existing.DateModified = DateTime.UtcNow;
+                    context.LeaveTypes.Update(existing);
+                }
             }
         }
         await context.SaveChangesAsync();
 
         // ** Auto-allocate default days to all active users for standard paid leaves **
         // ** Auto-allocate default days to all active users for standard paid leaves **
-        var allocationService = serviceProvider.GetRequiredService<LMS.Services.ILeaveAllocationService>();
+        var allocationService = serviceProvider.GetRequiredService<LeavePro.Services.ILeaveAllocationService>();
         await allocationService.AllocateDefaultLeavesToAllActiveUsersAsync(DateTime.Now.Year);
     }
 }

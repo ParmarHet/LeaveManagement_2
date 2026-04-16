@@ -1,4 +1,4 @@
-@model LMS.Models.ManagerDashboardViewModel
+@model LeavePro.Models.ManagerDashboardViewModel
 @{
     ViewData["Title"] = "Manager Dashboard";
     Layout = "_ManagerLayout";
@@ -36,12 +36,6 @@
     <div class="ds-filter-pill">Select Month <i class="bi bi-chevron-down ms-1"></i></div>
     
     <div class="ms-auto d-flex gap-2">
-        <a asp-controller="Employee" asp-action="Profile" class="btn btn-outline-secondary">
-            <i class="bi bi-person-circle me-1"></i> My Profile
-        </a>
-        <a asp-controller="Employee" asp-action="Balance" class="btn btn-outline-secondary">
-            <i class="bi bi-wallet2 me-1"></i> Leave Balance
-        </a>
         <a asp-action="PendingRequests" class="ds-btn-primary">
             Review All Pending
         </a>

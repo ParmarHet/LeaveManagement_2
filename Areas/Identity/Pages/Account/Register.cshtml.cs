@@ -12,8 +12,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
-using LMS.Models;
-using LMS.Services;
+using LeavePro.Models;
+using LeavePro.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -21,7 +21,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 
-namespace LMS.Areas.Identity.Pages.Account
+namespace LeavePro.Areas.Identity.Pages.Account
 {
     public class RegisterModel : PageModel
     {
@@ -30,14 +30,14 @@ namespace LMS.Areas.Identity.Pages.Account
         private readonly IUserStore<ApplicationUser> _userStore;
         private readonly IUserEmailStore<ApplicationUser> _emailStore;
         private readonly ILogger<RegisterModel> _logger;
-        private readonly LMS.Services.IEmailService _emailService;
+        private readonly LeavePro.Services.IEmailService _emailService;
 
         public RegisterModel(
             UserManager<ApplicationUser> userManager,
             IUserStore<ApplicationUser> userStore,
             SignInManager<ApplicationUser> signInManager,
             ILogger<RegisterModel> logger,
-            LMS.Services.IEmailService emailService)
+            LeavePro.Services.IEmailService emailService)
         {
             _userManager = userManager;
             _userStore = userStore;
@@ -189,7 +189,7 @@ namespace LMS.Areas.Identity.Pages.Account
                     }
                     else
                     {
-                        TempData["ErrorMessage"] = "Registration Successful. Awaiting Admin Approval.";
+                        TempData["SuccessMessage"] = "Registration Successful. Awaiting Admin Approval.";
                         return RedirectToPage("Login");
                     }
                 }

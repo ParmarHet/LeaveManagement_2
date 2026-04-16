@@ -1,4 +1,4 @@
-@model IEnumerable<LMS.Models.UserViewModel>
+@model IEnumerable<LeavePro.Models.UserViewModel>
 @{
     ViewData["Title"] = "User Management";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
@@ -23,11 +23,11 @@
         <div class="row g-2 align-items-end">
             <div class="col-md-3">
                 <label class="form-label small text-muted fw-bold">Search</label>
-                <input type="text" name="search" class="form-control form-control-sm" placeholder="Name or Email" value="@ViewBag.CurrentSearch" />
+                <input type="text" name="search" class="form-control form-control-sm ds-filter-input" placeholder="Name or Email" value="@ViewBag.CurrentSearch" data-target="#usersTable" data-no-results="#noResults" />
             </div>
             <div class="col-md-2">
                 <label class="form-label small text-muted fw-bold">Department</label>
-                <select name="departmentId" class="form-select form-select-sm">
+                <select name="departmentId" class="form-select form-select-sm ds-auto-submit">
                     <option value="">All Departments</option>
                     @if (ViewBag.Departments != null)
                     {
@@ -47,7 +47,7 @@
             </div>
             <div class="col-md-2">
                 <label class="form-label small text-muted fw-bold">Role</label>
-                <select name="role" class="form-select form-select-sm">
+                <select name="role" class="form-select form-select-sm ds-auto-submit">
                     <option value="">All Roles</option>
                     @if (ViewBag.Roles != null)
                     {
@@ -67,7 +67,7 @@
             </div>
             <div class="col-md-2">
                 <label class="form-label small text-muted fw-bold">Sort By</label>
-                <select name="sortBy" class="form-select form-select-sm">
+                <select name="sortBy" class="form-select form-select-sm ds-auto-submit">
                     @if (ViewBag.CurrentSort == "name")
                     {
                         <option value="latest">Latest Added</option>
@@ -81,7 +81,7 @@
                 </select>
             </div>
             <div class="col-md-3 d-flex gap-2">
-                <button type="submit" class="btn btn-sm btn-primary px-3"><i class="bi bi-filter"></i> Apply</button>
+                <button type="submit" class="btn btn-sm btn-primary px-3 d-none"><i class="bi bi-filter"></i> Apply</button>
                 <a asp-action="Index" class="btn btn-sm btn-light px-3 border">Clear</a>
             </div>
         </div>
@@ -90,7 +90,7 @@
 
 <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
     <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
+        <table class="table table-hover align-middle mb-0" id="usersTable">
             <thead class="bg-light">
                 <tr>
                     <th class="ps-4 py-3 text-muted fw-bold small text-uppercase" style="letter-spacing: 0.5px;">Employee Profile</th>
@@ -225,6 +225,13 @@
                         </td>
                     </tr>
                 }
+                <tr id="noResults" style="display: none;">
+                    <td colspan="3" class="text-center py-5 text-muted">
+                        <i class="bi bi-search fs-1 d-block mb-3 opacity-25"></i>
+                        <p class="h6 fw-bold">No results found</p>
+                        <p class="small">Try adjusting your search or filters to find what you're looking for.</p>
+                    </td>
+                </tr>
             </tbody>
         </table>
     </div>

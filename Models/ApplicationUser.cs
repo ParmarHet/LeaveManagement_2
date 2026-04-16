@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 
-namespace LMS.Models;
+namespace LeavePro.Models;
 
 public class ApplicationUser : IdentityUser
 {

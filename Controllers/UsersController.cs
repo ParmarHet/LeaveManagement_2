@@ -2,12 +2,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using LMS.Models;
-using LMS.Constants;
-using LMS.Data;
-using LMS.Services;
+using LeavePro.Models;
+using LeavePro.Constants;
+using LeavePro.Data;
+using LeavePro.Services;
 
-namespace LMS.Controllers;
+namespace LeavePro.Controllers;
 
 [Authorize(Roles = Roles.Admin)]
 public class UsersController : Controller
@@ -15,10 +15,10 @@ public class UsersController : Controller
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly RoleManager<IdentityRole> _roleManager;
     private readonly ApplicationDbContext _context;
-    private readonly LMS.Services.ILeaveAllocationService _leaveAllocationService;
+    private readonly LeavePro.Services.ILeaveAllocationService _leaveAllocationService;
     private readonly IEmailService _emailService;
 
-    public UsersController(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, ApplicationDbContext context, LMS.Services.ILeaveAllocationService leaveAllocationService, IEmailService emailService)
+    public UsersController(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, ApplicationDbContext context, LeavePro.Services.ILeaveAllocationService leaveAllocationService, IEmailService emailService)
     {
         _userManager = userManager;
         _roleManager = roleManager;

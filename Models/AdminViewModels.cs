@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 
 
-namespace LMS.Models;
+namespace LeavePro.Models;
 
 // ─── Admin Dashboard VM ───────────────────────────────────────────────────────
 public class AdminDashboardViewModel
@@ -46,7 +46,7 @@ public class AdminLeaveHistoryViewModel
     public int OnLeaveTodayCount { get; set; }
     public int PendingApprovalsCount { get; set; }
     public int TotalEmployees { get; set; }
-    public int TotalAbsent { get; set; } // Same as on leave today
+    public int PresentTodayCount { get; set; }
 
     public List<AdminLeaveRequestViewModel> TodayLeaves { get; set; } = new();
     public List<AdminLeaveRequestViewModel> PendingLeaves { get; set; } = new();

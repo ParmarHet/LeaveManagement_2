@@ -3,11 +3,11 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using LMS.Models;
-using LMS.Data;
-using LMS.Constants;
+using LeavePro.Models;
+using LeavePro.Data;
+using LeavePro.Constants;
 using ClosedXML.Excel;
-namespace LMS.Controllers;
+namespace LeavePro.Controllers;
 
 [Authorize]
 public class HolidaysController : Controller
@@ -257,9 +257,9 @@ public class HolidaysController : Controller
 
         var holidayList = userHolidays.Select(h => new
         {
-            title = h.Name + (h.IsFloating ? " (Floating)" : ""),
+            title = h.Name + (h.DepartmentId != null ? $" ({h.Department?.Name})" : " (Global)") + (h.IsFloating ? " [Floating]" : ""),
             start = (h.IsRecurringYearly ? new DateTime(year, h.Date.Month, h.Date.Day) : h.Date).ToString("yyyy-MM-dd"),
-            backgroundColor = h.IsFloating ? "#f59e0b" : "#2563eb",
+            backgroundColor = h.IsFloating ? "#f59e0b" : (h.DepartmentId != null ? "#6366f1" : "#2563eb"),
             borderColor = "transparent",
             textColor = "#fff",
             type = "holiday"

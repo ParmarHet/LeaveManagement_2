@@ -1,4 +1,4 @@
-@model IEnumerable<LMS.Models.Holiday>
+@model IEnumerable<LeavePro.Models.Holiday>
 @{
     ViewData["Title"] = "Holiday Calendar";
     Layout = User.IsInRole("Admin") ? "_AdminLayout" : (User.IsInRole("Manager") ? "_ManagerLayout" : "_EmployeeLayout");

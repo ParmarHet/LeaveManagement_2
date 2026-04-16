@@ -2,12 +2,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using LMS.Models;
-using LMS.Constants;
-using LMS.Data;
-using LMS.Services;
+using LeavePro.Models;
+using LeavePro.Constants;
+using LeavePro.Data;
+using LeavePro.Services;
 
-namespace LMS.Controllers;
+namespace LeavePro.Controllers;
 
 [Authorize(Roles = Roles.Employee + "," + Roles.Manager)]
 public class EmployeeController : Controller
@@ -66,9 +66,15 @@ public class EmployeeController : Controller
             .Where(h => (h.DepartmentId == null && h.EmployeeId == null) || (h.DepartmentId == user.DepartmentId) || (h.EmployeeId == user.Id))
             .ToListAsync();
 
+        var allLeaves = await _context.LeaveRequests
+            .Where(r => r.RequestingEmployeeId == user.Id && r.Approved == true && !r.Cancelled)
+            .ToListAsync();
+        var balances = await GetLeaveBalancesAsync(user, allLeaves);
+
         var model = new ApplyLeaveViewModel { 
             LeaveTypes = leaveTypes,
-            AvailableFloatingHolidays = floatingHolidays
+            AvailableFloatingHolidays = floatingHolidays,
+            CurrentBalances = balances
         };
         return View(model);
     }
@@ -80,7 +86,11 @@ public class EmployeeController : Controller
         var user = await _userManager.GetUserAsync(User);
         if (user == null) return Challenge();
 
-        model.LeaveTypes = await _context.LeaveTypes.ToListAsync();
+        model.LeaveTypes = await _context.LeaveTypes.Where(lt => lt.Code != "WO" && lt.Code != "HD").ToListAsync();
+        var allLeaves = await _context.LeaveRequests
+            .Where(r => r.RequestingEmployeeId == user.Id && r.Approved == true && !r.Cancelled)
+            .ToListAsync();
+        model.CurrentBalances = await GetLeaveBalancesAsync(user, allLeaves);
 
         // ── Validation: Date order
         if (model.StartDate > model.EndDate)
@@ -173,12 +183,7 @@ public class EmployeeController : Controller
             }
         }
 
-        // Rule 7: PL first 2 months
-        if (leaveTypeObj.Code == "PL" && (DateTime.Today - user.DateJoined).TotalDays < 60)
-        {
-            ModelState.AddModelError("", "Privilege Leave (PL) cannot be availed in the first two months of employment.");
-            return View(model);
-        }
+        // Rule 7: PL first 2 months - (REMOVED: User can be eligible to apply for PL in first 2 months also)
 
         // Rule 10: Maternity Leave
         if (leaveTypeObj.Code == "ML")
@@ -270,6 +275,14 @@ public class EmployeeController : Controller
             var deptUsers = await _context.Users.Where(u => u.DepartmentId == user.DepartmentId && u.IsActive).CountAsync();
             if (deptUsers > 0)
             {
+                // Dynamic attendance rule based on team size table (Approx 40% absence allowed)
+                // 1-3 members: max 1 on leave
+                // 4-6 members: max 2 on leave
+                // 7-9 members: max 3 on leave
+                // 10 members: max 4 on leave
+                int maxAbsence = (int)Math.Ceiling(deptUsers / 3.0);
+                if (deptUsers == 10) maxAbsence = 4; // Table says 10 -> 4
+
                 for (var d = model.StartDate; d <= model.EndDate; d = d.AddDays(1))
                 {
                     if (d.DayOfWeek == DayOfWeek.Saturday || d.DayOfWeek == DayOfWeek.Sunday) continue;
@@ -279,10 +292,10 @@ public class EmployeeController : Controller
                         .Where(r => r.RequestingEmployee!.DepartmentId == user.DepartmentId && r.Approved != false && !r.Cancelled && r.StartDate <= d && r.EndDate >= d)
                         .CountAsync();
                     
-                    double attendancePercentage = (double)(deptUsers - othersOnLeave - 1) / deptUsers * 100;
-                    if (attendancePercentage < 60)
+                    if (othersOnLeave + 1 > maxAbsence)
                     {
-                        ModelState.AddModelError("", $"Your leave request on {d:dd MMM yyyy} drops department attendance below 60% ({attendancePercentage:0.0}%). Request rejected.");
+                        double attendancePercentage = (double)(deptUsers - othersOnLeave - 1) / deptUsers * 100;
+                        ModelState.AddModelError("", $"Your leave request on {d:dd MMM yyyy} would exceed the maximum allowed absence for your team size (Max: {maxAbsence}, Requested: {othersOnLeave + 1}). Department attendance would drop to {attendancePercentage:0.0}%. Request rejected.");
                         return View(model);
                     }
                 }

@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
-namespace LMS.Models;
+namespace LeavePro.Models;
 
 public class Department
 {

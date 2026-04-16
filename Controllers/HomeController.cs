@@ -1,9 +1,9 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using LMS.Models;
-using LMS.Constants;
+using LeavePro.Models;
+using LeavePro.Constants;
 
-namespace LMS.Controllers;
+namespace LeavePro.Controllers;
 
 public class HomeController : Controller
 {
@@ -15,7 +15,7 @@ public class HomeController : Controller
                 return RedirectToAction("Dashboard", "Admin");
 
             if (User.IsInRole(Roles.Manager))
-                return RedirectToAction("MyTeam", "Manager");
+                return RedirectToAction("Dashboard", "Manager");
 
             if (User.IsInRole(Roles.Employee))
                 return RedirectToAction("Dashboard", "Employee");

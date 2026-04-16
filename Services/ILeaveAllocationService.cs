@@ -1,6 +1,6 @@
-using LMS.Models;
+using LeavePro.Models;
 
-namespace LMS.Services;
+namespace LeavePro.Services;
 
 public interface ILeaveAllocationService
 {

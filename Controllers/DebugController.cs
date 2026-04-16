@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using LMS.Models;
-using LMS.Constants;
-using LMS.Data;
+using LeavePro.Models;
+using LeavePro.Constants;
+using LeavePro.Data;
 using Microsoft.AspNetCore.Mvc;
 
-namespace LMS.Controllers;
+namespace LeavePro.Controllers;
 
 public class DebugController : Controller
 {
@@ -19,7 +19,7 @@ public class DebugController : Controller
     [HttpGet("setup-admin")]
     public async Task<IActionResult> SetupAdmin()
     {
-        var adminEmail = "admin@lms.com";
+        var adminEmail = "admin@leavepro.com";
         var user = await _userManager.FindByEmailAsync(adminEmail);
         
         if (user != null)

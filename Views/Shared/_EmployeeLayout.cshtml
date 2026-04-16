@@ -1,11 +1,11 @@
 @using Microsoft.AspNetCore.Identity
-@inject UserManager<LMS.Models.ApplicationUser> UserManager
+@inject UserManager<LeavePro.Models.ApplicationUser> UserManager
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - LEAVE PRO Portal</title>
+    <title>@ViewData["Title"] - LeavePro Portal</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
@@ -23,7 +23,7 @@
     <div class="ds-sidebar-logo">
         <div class="ds-logo-icon">LP</div>
         <div class="ds-logo-text">
-            <div class="brand-name">LEAVE PRO</div>
+            <div class="brand-name">LeavePro Portal</div>
         </div>
     </div>
 
@@ -98,8 +98,8 @@
                     <div class="ds-profile-name">@(empU != null ? $"{empU.FirstName} {empU.LastName}" : User.Identity?.Name)</div>
                     <div class="ds-profile-role">Employee</div>
                 </div>
-                <div class="ds-avatar shadow-sm border ms-2">
-                    <img src="https://ui-avatars.com/api/?name=@(empU?.FirstName ?? "E")&background=16a34a&color=fff" alt="User">
+                <div class="ds-avatar shadow-sm border ms-2" style="background: linear-gradient(135deg, #4f46e5, #312e81); color: #fff;">
+                    <i class="bi bi-person-fill fs-5"></i>
                 </div>
             </div>
         </div>
@@ -115,22 +115,8 @@
 
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
 <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
 <script>
-    function toggleSidebar() {
-        const sidebar = $('#mainSidebar');
-        const main = $('.ds-main');
-        const topbar = $('.ds-topbar');
-        
-        sidebar.toggleClass('sidebar-closed');
-        main.toggleClass('content-full');
-        topbar.toggleClass('content-full');
-        
-        if ($(window).width() < 992) {
-            sidebar.toggleClass('show');
-            $('#sidebarOverlay').toggleClass('show');
-        }
-    }
-    
     $(document).ready(function() {
         $.get('/Notifications/GetUnreadCount', function(data) {
             if (data && data.count > 0) {

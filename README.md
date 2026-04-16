@@ -1,4 +1,4 @@
-# Leave Management System (LMS)
+# LeavePro - Leave Management System
 
 A professional, streamlined web application built with ASP.NET Core 10.0 to manage employee time-off requests, approvals, and leave allocations.
 
@@ -15,7 +15,7 @@ A professional, streamlined web application built with ASP.NET Core 10.0 to mana
 
 ## 🔐 Default Admin Credentials
 To access the system as an administrator:
-- **Email**: `admin@lms.com`
+- **Email**: `admin@leavepro.com`
 - **Password**: `Admin@123`
 
 ---

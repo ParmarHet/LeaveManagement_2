@@ -2,12 +2,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using LMS.Models;
-using LMS.Constants;
-using LMS.Data;
-using LMS.Services;
+using LeavePro.Models;
+using LeavePro.Constants;
+using LeavePro.Data;
+using LeavePro.Services;
 
-namespace LMS.Controllers;
+namespace LeavePro.Controllers;
 
 [Authorize(Roles = Roles.Manager + "," + Roles.Admin)]
 public class ManagerController : Controller
@@ -160,7 +160,8 @@ public class ManagerController : Controller
             AttachmentPath = leave.AttachmentPath,
             DateOfDeath = leave.DateOfDeath,
             DeceasedName = leave.DeceasedName,
-            DeceasedRelationship = leave.DeceasedRelationship
+            DeceasedRelationship = leave.DeceasedRelationship,
+            IsCancelled = leave.Cancelled
         };
 
         return View(model);
@@ -175,6 +176,12 @@ public class ManagerController : Controller
 
         var leave = await _context.LeaveRequests.FindAsync(id);
         if (leave == null) return NotFound();
+
+        if (leave.Cancelled)
+        {
+            TempData["Error"] = "Cannot approve a cancelled request.";
+            return RedirectToAction(nameof(History));
+        }
 
         leave.Approved = true;
         leave.ReviewerId = manager.Id;
@@ -270,6 +277,12 @@ public class ManagerController : Controller
 
         var leave = await _context.LeaveRequests.Include(r => r.LeaveType).Include(r => r.RequestingEmployee).FirstOrDefaultAsync(r => r.Id == id);
         if (leave == null) return NotFound();
+
+        if (leave.Cancelled)
+        {
+            TempData["Error"] = "Cannot reject a cancelled request.";
+            return RedirectToAction(nameof(History));
+        }
 
         leave.Approved = false;
         leave.ReviewerId = manager.Id;

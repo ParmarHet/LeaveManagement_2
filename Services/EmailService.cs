@@ -3,9 +3,9 @@ using MailKit.Security;
 using Microsoft.Extensions.Options;
 using MimeKit;
 using MimeKit.Text;
-using LMS.Models;
+using LeavePro.Models;
 
-namespace LMS.Services;
+namespace LeavePro.Services;
 
 public class EmailService : IEmailService
 {

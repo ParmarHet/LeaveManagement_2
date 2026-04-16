@@ -1,4 +1,4 @@
-@model LMS.Models.LeaveApprovalViewModel
+@model LeavePro.Models.LeaveApprovalViewModel
 @{
     ViewData["Title"] = "Review Leave Request";
     Layout = "_ManagerLayout";
@@ -106,36 +106,49 @@
         <h6 class="fw-bold mb-3">Your Decision</h6>
 
         <div class="row g-3">
-            <div class="col-md-6">
-                <div class="border rounded p-3" style="border-color:#28a745 !important">
-                    <h6 class="text-success fw-bold mb-2"><i class="fa-solid fa-check-circle me-1"></i> Approve</h6>
-                    <form asp-action="Approve" asp-route-id="@Model.Id" method="post">
-                        @Html.AntiForgeryToken()
-                        <div class="mb-2">
-                            <textarea name="remarks" class="form-control form-control-sm" rows="2" placeholder="Remarks (optional)"></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-success btn-sm w-100"
-                                onclick="return confirm('Approve this leave request?')">
-                            <i class="fa-solid fa-check me-1"></i> Approve Leave
-                        </button>
-                    </form>
+            @if (Model.IsCancelled)
+            {
+                <div class="col-12">
+                    <div class="alert alert-secondary border-0 py-4 text-center">
+                        <i class="fa-solid fa-ban fa-2x mb-2 text-muted"></i>
+                        <h5 class="fw-bold mb-1">Request Cancelled</h5>
+                        <p class="mb-0 text-muted">This request was cancelled by the employee and cannot be actioned.</p>
+                    </div>
                 </div>
-            </div>
-            <div class="col-md-6">
-                <div class="border rounded p-3" style="border-color:#dc3545 !important">
-                    <h6 class="text-danger fw-bold mb-2"><i class="fa-solid fa-times-circle me-1"></i> Reject</h6>
-                    <form asp-action="Reject" asp-route-id="@Model.Id" method="post">
-                        @Html.AntiForgeryToken()
-                        <div class="mb-2">
-                            <textarea name="remarks" class="form-control form-control-sm" rows="2" placeholder="Reason for rejection (required)" required></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-danger btn-sm w-100"
-                                onclick="return confirm('Reject this leave request?')">
-                            <i class="fa-solid fa-times me-1"></i> Reject Leave
-                        </button>
-                    </form>
+            }
+            else
+            {
+                <div class="col-md-6">
+                    <div class="border rounded p-3" style="border-color:#28a745 !important">
+                        <h6 class="text-success fw-bold mb-2"><i class="fa-solid fa-check-circle me-1"></i> Approve</h6>
+                        <form asp-action="Approve" asp-route-id="@Model.Id" method="post">
+                            @Html.AntiForgeryToken()
+                            <div class="mb-2">
+                                <textarea name="remarks" class="form-control form-control-sm" rows="2" placeholder="Remarks (optional)"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-success btn-sm w-100"
+                                    onclick="return confirm('Approve this leave request?')">
+                                <i class="fa-solid fa-check me-1"></i> Approve Leave
+                            </button>
+                        </form>
+                    </div>
                 </div>
-            </div>
+                <div class="col-md-6">
+                    <div class="border rounded p-3" style="border-color:#dc3545 !important">
+                        <h6 class="text-danger fw-bold mb-2"><i class="fa-solid fa-times-circle me-1"></i> Reject</h6>
+                        <form asp-action="Reject" asp-route-id="@Model.Id" method="post">
+                            @Html.AntiForgeryToken()
+                            <div class="mb-2">
+                                <textarea name="remarks" class="form-control form-control-sm" rows="2" placeholder="Reason for rejection (required)" required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-danger btn-sm w-100"
+                                    onclick="return confirm('Reject this leave request?')">
+                                <i class="fa-solid fa-times me-1"></i> Reject Leave
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            }
         </div>
     </div>
 </div>

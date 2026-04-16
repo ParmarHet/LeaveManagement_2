@@ -1,8 +1,8 @@
-@model LMS.Models.Holiday
+@model LeavePro.Models.Holiday
 @{
     ViewData["Title"] = "Add Holiday";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
-    var departments = ViewBag.Departments as List<LMS.Models.Department> ?? new List<LMS.Models.Department>();
+    var departments = ViewBag.Departments as List<LeavePro.Models.Department> ?? new List<LeavePro.Models.Department>();
 }
 
 <div class="ds-page-header">

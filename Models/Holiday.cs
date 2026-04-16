@@ -1,4 +1,4 @@
-namespace LMS.Models;
+namespace LeavePro.Models;
 
 public class Holiday
 {
